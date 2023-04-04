@@ -7,6 +7,25 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="100"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="50"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Label Content="Message: " Grid.Column="0" Margin="10"></Label>
+        <TextBox Name="MessageTextBox" Grid.Column="1" Margin="10"></TextBox>
+        <Button Name="SendMessageButton" Click="SendMessageButton_Click" Grid.Column="2" Margin="10">Send</Button>
 
+        <Label Content="Token: " Grid.Row="1" Grid.Column="0" Margin="10"></Label>
+        <TextBox Name="TokenTextBox" TextChanged="TokenTextBox_TextChanged" Grid.Row="1" Grid.Column="1" Margin="10"></TextBox>
+        <Button Name="UpdateConfigButton" Click="UpdateConfigButton_Click" Grid.Row="1" Grid.Column="2" Margin="10">Update</Button>
+
+        <Label Content="ChatId: " Grid.Row="2" Grid.Column="0" Margin="10"></Label>
+        <TextBox Name="ChatIdTextBox" TextChanged="ChatIdTextBox_TextChanged" Grid.Row="2" Grid.Column="1" Margin="10"></TextBox>
     </Grid>
 </Window>

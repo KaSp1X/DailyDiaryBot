@@ -1,17 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace DiaryBot
 {
@@ -23,6 +11,30 @@ namespace DiaryBot
         public MainWindow()
         {
             InitializeComponent();
+            TokenTextBox.Text = Static.Config.token;
+            ChatIdTextBox.Text = Static.Config.chatId;
         }
+
+        private void SendMessageButton_Click(object sender, RoutedEventArgs e)
+        {
+            string message = MessageTextBox.Text;
+            new Task(async () => { await Bot.Instance.SendMessage(message); }).Start();
+        }
+
+        private void UpdateConfigButton_Click(object sender, RoutedEventArgs e)
+        {
+            Serializer.Save(Static.ConfigPath, Static.Config);
+        }
+
+        private void TokenTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            Static.Config.token = TokenTextBox.Text;
+        }
+
+        private void ChatIdTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            Static.Config.chatId = ChatIdTextBox.Text;
+        }
+
     }
 }
