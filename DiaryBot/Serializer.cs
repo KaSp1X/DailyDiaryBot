@@ -1,7 +1,5 @@
 ﻿using System.Text.Json;
 using System.IO;
-using System.Diagnostics;
-using System;
 
 namespace DiaryBot
 {
@@ -16,13 +14,13 @@ namespace DiaryBot
                 {
                     return JsonSerializer.Deserialize<T>(stream);
                 }
-                catch(JsonException ex)
+                catch
                 {
-                    Debug.WriteLine(ex.Message);
+                    // Ignoring JSONSerializerException as upon invalid format of file it will be recreated.
                 }
                 finally { stream.Close(); }
             }
-            return default(T);
+            return default;
         }
 
         public static void Save<T>(string filePath, T obj)

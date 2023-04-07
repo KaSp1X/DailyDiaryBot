@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
+using Telegram.Bot.Types;
 
 namespace DiaryBot
 {
@@ -23,20 +25,29 @@ namespace DiaryBot
 
         private Bot()
         {
-            if (Static.Config != null && !string.IsNullOrWhiteSpace(Static.Config.token))
-                client = new TelegramBotClient(Static.Config.token);
-            else
-                client = null;
+            if (!string.IsNullOrWhiteSpace(Config.Instance.Token))
+                client = new TelegramBotClient(Config.Instance.Token);
         }
 
-        public async Task<Telegram.Bot.Types.Message?> SendMessage(string message)
+        public Message LastMessage { get; set; }
+
+        public async Task<Message?> SendMessage(string message)
         {
-            if (client == null ||
-                Static.Config == null ||
-                string.IsNullOrWhiteSpace(Static.Config.chatId) ||
-                string.IsNullOrWhiteSpace(message))
-                return null;
-            return await client.SendTextMessageAsync(Static.Config.chatId, message);
+            if (client != null)
+            {
+                if (string.IsNullOrWhiteSpace(Config.Instance.ChatId))
+                    Error.Instance.Message = "Bad Request: chat not found";
+                else
+                    try
+                    {
+                        return await client.SendTextMessageAsync(Config.Instance.ChatId, message);
+                    }
+                    catch (RequestException ex)
+                    {
+                        Error.Instance.Message = ex.Message;
+                    }
+            }
+            return null;
         }
     }
 }
