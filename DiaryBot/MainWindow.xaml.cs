@@ -17,14 +17,20 @@ namespace DiaryBot
         {
             string text = MessageTextBox.Text;
             if (!string.IsNullOrWhiteSpace(text))
-                new Task(async () => { Bot.Instance.LastMessage = await Bot.Instance.SendMessage(text); }).Start();
+                new Task(async () =>
+                {
+                    Bot.Instance.LastMessage = await Bot.Instance.SendMessage(text);
+                }).Start();
         }
 
         private void EditLastMessageButton_Click(object sender, RoutedEventArgs e)
         {
             string text = MessageTextBox.Text;
             if (!string.IsNullOrWhiteSpace(text))
-                new Task(async () => { Bot.Instance.LastMessage = await Bot.Instance.EditLastMessage(text); }).Start();
+                new Task(async () =>
+                {
+                    Bot.Instance.LastMessage = await Bot.Instance.EditLastMessage(text);
+                }).Start();
         }
 
         private void UpdateConfigButton_Click(object sender, RoutedEventArgs e)

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Dynamic;
 using System.Runtime.CompilerServices;
 
@@ -16,17 +18,23 @@ namespace DiaryBot
             {
                 if (_instance == null)
                 {
-                    dynamic? d = Serializer.Load<ExpandoObject>(ConfigPath);
-                    _instance = new Config();
+                    dynamic? dynConfig = Serializer.Load<ExpandoObject>(ConfigPath);
+                    IDictionary<string, object> dictConfig = dynConfig as IDictionary<string, object> ?? new Dictionary<string, object>();
 
-                    if (d is not null)
+                    if (dictConfig.Count == 0)
                     {
-                        _instance.Token = d.Token is not null ? d.Token.ToString() : "";
-                        _instance.ChatId = d.ChatId is not null ? d.ChatId.ToString() : "";
-                    }
-
-                    if (_instance == null)
+                        _instance = new Config();
                         Serializer.Save(ConfigPath, _instance);
+                    }
+                    else
+                    {
+                        _instance = new Config
+                        {
+                            Token = dictConfig.TryGetValue("Token", out object tok) ? tok.ToString() : "",
+                            ChatId = dictConfig.TryGetValue("ChatId", out object chId) ? chId.ToString() : "",
+                            ReplyMessageId = dictConfig.TryGetValue("ReplyMessageId", out object obMId) ? (Int32.TryParse(obMId.ToString(), out int intMId) ? intMId : null) : null
+                        };
+                    }
 
                     if (string.IsNullOrWhiteSpace(_instance?.Token) || string.IsNullOrWhiteSpace(_instance?.ChatId))
                         Error.Instance.Message = "Fill fields in config, save and restart the app";
@@ -64,6 +72,21 @@ namespace DiaryBot
             {
                 _chatId = value;
                 NotifyPropertyChanged(nameof(ChatId));
+            }
+        }
+
+        private int? _replyMessageId = null;
+
+        public int? ReplyMessageId
+        {
+            get
+            {
+                return _replyMessageId;
+            }
+            set
+            {
+                _replyMessageId = value;
+                NotifyPropertyChanged(nameof(ReplyMessageId));
             }
         }
 

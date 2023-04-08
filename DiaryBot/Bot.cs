@@ -2,23 +2,17 @@
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace DiaryBot
 {
     internal class Bot
     {
-        private static Bot? instance;
+        private static Bot? _instance;
 
         public static Bot Instance
         {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = new Bot();
-                }
-                return instance;
-            }
+            get => _instance ??= new Bot();
         }
 
         private readonly TelegramBotClient? client;
@@ -29,9 +23,9 @@ namespace DiaryBot
                 client = new TelegramBotClient(Config.Instance.Token);
         }
 
-        public Message LastMessage { get; set; }
+        public Telegram.Bot.Types.Message LastMessage { get; set; }
 
-        public async Task<Message?> SendMessage(string message)
+        public async Task<Telegram.Bot.Types.Message> SendMessage(string message)
         {
             if (client != null)
             {
@@ -40,7 +34,32 @@ namespace DiaryBot
                 else
                     try
                     {
-                        return await client.SendTextMessageAsync(Config.Instance.ChatId, message);
+                        return await client.SendTextMessageAsync(Config.Instance.ChatId, message, ParseMode.Html, replyToMessageId: Config.Instance.ReplyMessageId);
+                    }
+                    catch (RequestException ex)
+                    {
+                        Error.Instance.Message = ex.Message;
+                    }
+            }
+            return null;
+        }
+
+        public async Task<Telegram.Bot.Types.Message> EditLastMessage(string message)
+        {
+            if (client != null)
+            {
+                if (string.IsNullOrWhiteSpace(Config.Instance.ChatId))
+                    Error.Instance.Message = "Bad Request: chat not found";
+                else
+                    if (LastMessage == null)
+                        Error.Instance.Message = "Last message not found";
+                else
+                    if (LastMessage.Text == message)
+                        Error.Instance.Message = "You can't update not edited message";
+                else
+                    try
+                    {
+                        return await client.EditMessageTextAsync(Config.Instance.ChatId, LastMessage.MessageId, message, ParseMode.Html);
                     }
                     catch (RequestException ex)
                     {
