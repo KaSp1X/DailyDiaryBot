@@ -8,7 +8,7 @@ namespace DiaryBot
 {
     public class Config : INotifyPropertyChanged
     {
-        public const string ConfigPath = "config.json";
+        public const string Path = "config.json";
 
         private static Config? _instance;
 
@@ -18,13 +18,13 @@ namespace DiaryBot
             {
                 if (_instance == null)
                 {
-                    dynamic? dynConfig = Serializer.Load<ExpandoObject>(ConfigPath);
+                    dynamic? dynConfig = Serializer.Load<ExpandoObject>(Path);
                     IDictionary<string, object> dictConfig = dynConfig as IDictionary<string, object> ?? new Dictionary<string, object>();
 
                     if (dictConfig.Count == 0)
                     {
                         _instance = new Config();
-                        Serializer.Save(ConfigPath, _instance);
+                        Serializer.Save(Path, _instance);
                     }
                     else
                     {
@@ -32,7 +32,8 @@ namespace DiaryBot
                         {
                             Token = dictConfig.TryGetValue("Token", out object tok) ? tok.ToString() : "",
                             ChatId = dictConfig.TryGetValue("ChatId", out object chId) ? chId.ToString() : "",
-                            ReplyMessageId = dictConfig.TryGetValue("ReplyMessageId", out object obMId) ? (Int32.TryParse(obMId.ToString(), out int intMId) ? intMId : null) : null
+                            ReplyMessageId = dictConfig.TryGetValue("ReplyMessageId", out object? obMId) ?
+                                             (obMId == null ? null : (int.TryParse(obMId.ToString(), out int intMId) ? intMId : null)) : null
                         };
                     }
 

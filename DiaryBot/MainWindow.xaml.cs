@@ -19,7 +19,7 @@ namespace DiaryBot
             if (!string.IsNullOrWhiteSpace(text))
                 new Task(async () =>
                 {
-                    Bot.Instance.LastMessage = await Bot.Instance.SendMessage(text);
+                    await Bot.Instance.SendMessage(text);
                 }).Start();
         }
 
@@ -29,13 +29,19 @@ namespace DiaryBot
             if (!string.IsNullOrWhiteSpace(text))
                 new Task(async () =>
                 {
-                    Bot.Instance.LastMessage = await Bot.Instance.EditLastMessage(text);
+                    await Bot.Instance.EditPickedMessage(text);
                 }).Start();
         }
 
         private void UpdateConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            Serializer.Save(Config.ConfigPath, Config.Instance);
+            Serializer.Save(Config.Path, Config.Instance);
+        }
+
+        private void RecentButton_Click(object sender, RoutedEventArgs e)
+        {
+            RecentMessages recentMessages = new();
+            recentMessages.Show();
         }
     }
 }

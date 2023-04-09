@@ -23,10 +23,10 @@ namespace DiaryBot
             return default;
         }
 
-        public static void Save<T>(string filePath, T obj)
+        public static void Save<T>(string filePath, T obj, JsonSerializerOptions? options = null)
         {
             using FileStream stream = File.Open(filePath, FileMode.Create);
-            JsonSerializer.Serialize<T>(stream, obj);
+            JsonSerializer.Serialize<T>(stream, obj, options);
         }
     }
 }
