@@ -57,7 +57,12 @@ namespace DiaryBot
                     try
                     {
                         var result = await client.EditMessageTextAsync(Config.Instance.ChatId, Messages.Instance.PickedMessage.Value.Id , message, ParseMode.Html);
-                        Messages.AddLastMessage(result.MessageId, result.Text ?? "");
+                        Messages.UpdateLastMessage(result.MessageId, result.Text ?? "");
+                    }
+                    catch (RequestException ex) when (ex.Message == "Bad Request: message to edit not found")
+                    {
+                        Messages.RemoveMessage(Messages.Instance.PickedMessage);
+                        Error.Instance.Message = ex.Message;
                     }
                     catch (RequestException ex)
                     {

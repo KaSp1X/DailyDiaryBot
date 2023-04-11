@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using Telegram.Bot.Types;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DiaryBot
 {
@@ -31,11 +32,9 @@ namespace DiaryBot
                 if (_instance == null)
                 {
                     List<Message> ex = Serializer.Load<List<Message>>(_path) ?? new();
-                    _instance = new Messages
-                    {
-                        _messagesList = ex,
-                        PickedMessage = ex[0]
-                    };
+                    _instance = new();
+                    _instance._messagesList = ex;
+                    _instance.PickedMessage = _instance[0];
                 }
                 return _instance;
             }
@@ -53,7 +52,7 @@ namespace DiaryBot
         {
             get
             {
-                if (_messagesList.Count <= index || index < 0)
+                if (index >= _messagesList.Count || index < 0)
                 {
                     return null;
                 }
@@ -76,9 +75,43 @@ namespace DiaryBot
             else
                 Instance._messagesList[0] = new(id, text);
 
-            Instance.PickedMessage = Instance._messagesList[0];
+            Instance.PickedMessage = Instance[0];
             Serializer.Save(_path, Instance._messagesList);
         }
 
+        public static void UpdateLastMessage(int id, string text)
+        {
+            int i = 0;
+            for (; i < Instance._messagesList.Count; i++)
+            {
+                if (Instance[i]?.Id == Instance.PickedMessage?.Id)
+                {
+                    break;
+                }
+            }
+
+            for (int j = 0; j < i; j++)
+            {
+                (Instance._messagesList[j + 1], Instance._messagesList[j]) = (Instance._messagesList[j], Instance._messagesList[j + 1]);
+            }
+
+            Instance.PickedMessage = Instance._messagesList[0] = new(id, text);
+            Serializer.Save(_path, Instance._messagesList);
+        }
+
+        public static void RemoveMessage(Message? pickedMessage)
+        {
+            int i = 0;
+            for (; i < Instance._messagesList.Count; i++)
+            {
+                if (Instance[i]?.Id == pickedMessage?.Id)
+                {
+                    Instance.MessagesList.Remove(pickedMessage ?? new());
+                }
+            }
+
+            Instance.PickedMessage = Instance[0];
+            Serializer.Save(_path, Instance._messagesList);
+        }
     }
 }
