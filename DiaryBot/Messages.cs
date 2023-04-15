@@ -1,9 +1,5 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using Telegram.Bot.Types;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace DiaryBot
 {
@@ -65,7 +61,7 @@ namespace DiaryBot
 
             for (int i = Math.Min(4, Instance._messagesList.Count); i > 0; i--)
             {
-                if (Instance._messagesList.Count == i && i < 5)
+                if (Instance._messagesList.Count == i && i < 4)
                     Instance._messagesList.Add(Instance._messagesList[i - 1]);
                 else
                     Instance._messagesList[i] = Instance._messagesList[i - 1];
