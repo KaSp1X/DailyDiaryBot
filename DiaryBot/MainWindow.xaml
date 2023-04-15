@@ -5,119 +5,136 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DiaryBot"
         mc:Ignorable="d"
-        Title="MainWindow" Height="400" Width="700"
-        MinHeight="400" MinWidth="700">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="120"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="200"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="30"/>
-        </Grid.RowDefinitions>
-        <Label Content="Message: " 
-               Grid.Column="0" 
-               Margin="10"></Label>
-        <TextBox Name="MessageTextBox" 
-                 Grid.Column="1" 
-                 Margin="10" 
-                 TextWrapping="Wrap" 
-                 AcceptsReturn="True" 
-                 VerticalScrollBarVisibility="Visible"></TextBox>
-        <Grid Grid.Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="50"></RowDefinition>
-                <RowDefinition Height="50"></RowDefinition>
-            </Grid.RowDefinitions>
-            <Button Name="SendMessageButton" 
-                    Click="SendMessageButton_Click" 
-                    Grid.Row="0" Margin="10" Height="30" 
-                    VerticalAlignment="Top">Send</Button>
-            <Button Name="EditLastMessageButton" 
-                    Click="EditLastMessageButton_Click" 
-                    Grid.Row="1" Margin="10" Height="30" 
-                    VerticalAlignment="Top">Edit</Button>
-        </Grid>
-        
-        <Label Content="Token: " 
-               Grid.Row="1" Grid.Column="0" 
-               Margin="10"></Label>
-        <TextBox Name="TokenTextBox" 
-                 Text="{Binding Source={x:Static local:Config.Instance}, Path=Token, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                 Grid.Row="1" Grid.Column="1" 
-                 Margin="10"></TextBox>
-        <Button Name="UpdateConfigButton" 
-                Click="UpdateConfigButton_Click" 
-                Grid.Row="1" Grid.Column="2" 
-                Margin="10">Update</Button>
-
-        <Label Content="ChatId: " 
-               Grid.Row="2" Grid.Column="0" 
-               Margin="10"></Label>
-        <TextBox Name="ChatIdTextBox" 
-                 Text="{Binding Source={x:Static local:Config.Instance}, Path=ChatId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                 Grid.Row="2" Grid.Column="1" 
-                 Margin="10"></TextBox>
-        
-        <Label Content="ReplyMessageId: " 
-               Grid.Row="3" Grid.Column="0" 
-               Margin="10"></Label>
-        <TextBox Name="ReplyMessageIdTextBox" Grid.Row="3" Grid.Column="1" Margin="10">
-            <TextBox.Text>
-                <Binding Path="ReplyMessageId" Source="{x:Static local:Config.Instance}" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged">
-                    <Binding.Converter>
-                        <local:NullInt32Converter/>
-                    </Binding.Converter>
-                </Binding>
-            </TextBox.Text>
-        </TextBox>
-
-        <local:ErrorLabel x:Name="ErrorMessageLabel" 
-                          Content="{Binding Source={x:Static local:Error.Instance}, Path=Message}" 
-                          Grid.Row="4" Grid.ColumnSpan="3" 
-                          HorizontalContentAlignment="Center"
-                          Foreground="Red"
-                          FontWeight="Bold">
-            <local:ErrorLabel.Style>
-                <Style TargetType="{x:Type local:ErrorLabel}" BasedOn="{StaticResource {x:Type Label}}">
-                    <Style.Triggers>
-                        <EventTrigger RoutedEvent="ContentChanged">
-                            <EventTrigger.Actions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1.0"/>
-                                        <DoubleAnimation Duration="0:0:3" BeginTime="0:0:5" Storyboard.TargetProperty="Opacity" From="1.0"
+        Name="DiaryMainWindow"
+        Title="DairyBot" Height="350" Width="400"
+        MinHeight="350" MinWidth="400">
+    <TabControl x:Name="MainWindowTabControl"
+                SelectionChanged="MainWindowTabControl_SelectionChanged">
+        <TabItem Header="Message">
+            <Grid x:Name="Main"
+                      Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="120"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Name="MessageTextBox"
+                     Padding="5"
+                     TextWrapping="WrapWithOverflow"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Visible"
+                     KeyDown="MessageTextBox_KeyDown">
+                </TextBox>
+                <local:ErrorLabel x:Name="ErrorMessageLabel"
+                                      Opacity="0"
+                                      Width="170"
+                                      HorizontalContentAlignment="Center"
+                                      Foreground="Red"
+                                      Background="WhiteSmoke"
+                                      FontWeight="Bold"
+                                      VerticalAlignment="Bottom"
+                                      HorizontalAlignment="Center"
+                                      Margin="0,0,20,10">
+                    <TextBlock TextWrapping="WrapWithOverflow" Text="{Binding Source={x:Static local:Error.Instance}, Path=Message}"/>
+                    <local:ErrorLabel.Style>
+                        <Style TargetType="{x:Type local:ErrorLabel}" BasedOn="{StaticResource {x:Type Label}}">
+                            <Style.Triggers>
+                                <EventTrigger RoutedEvent="ContentChanged">
+                                    <EventTrigger.Actions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1.0"/>
+                                                <DoubleAnimation Duration="0:0:3" BeginTime="0:0:5" Storyboard.TargetProperty="Opacity" From="1.0"
                                             To="0.0"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger.Actions>
-                        </EventTrigger>
-                    </Style.Triggers>
-                </Style>
-            </local:ErrorLabel.Style>
-        </local:ErrorLabel>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger.Actions>
+                                </EventTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </local:ErrorLabel.Style>
+                </local:ErrorLabel>
+                <Grid Name="ControlButtonsGrid"
+                          Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"></RowDefinition>
+                        <RowDefinition Height="40"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Button Name="SendMessageButton" 
+                    Click="SendMessageButton_Click" 
+                    Grid.Row="0" Margin="10,0,0,10" Height="30" 
+                    VerticalAlignment="Top">Send</Button>
+                    <Button Name="EditLastMessageButton" 
+                    Click="EditLastMessageButton_Click" 
+                    Grid.Row="1" Margin="10,0,0,10" Height="30" 
+                    VerticalAlignment="Top">Edit</Button>
+                </Grid>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Preview"
+                 Name="PreviewTab">
+            <Grid x:Name="PreviewGrid"
+                Margin="10">
+            </Grid>
+        </TabItem>
+        <TabItem Header="Recent"
+                     Name="RecentTab">
+            <Grid x:Name="RecentGrid"
+                      Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Presets" IsEnabled="False">
+            <Grid Background="#FFE5E5E5"/>
+        </TabItem>
+        <TabItem Header="Settings"
+                     Name="SettingsTab">
+            <Grid x:Name="SettingsGrid"
+                      Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20"></RowDefinition>
+                    <RowDefinition Height="20*"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="15*"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="15*"></RowDefinition>
+                </Grid.RowDefinitions>
 
-        <Grid x:Name="RecentGrid" 
-              Grid.Column="3" Grid.RowSpan="5"
-              Margin="0,0,5,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="40"/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Label Name="RecentLabel"
+                <Label Content="Token"
                    Grid.Row="0"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Center">Recent</Label>
-        </Grid>
-    </Grid>
+                   Padding="5,0"></Label>
+                <TextBox Name="TokenTextBox" 
+                     Text="{Binding Source={x:Static local:Config.Instance}, Path=Token, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     Grid.Row="1"
+                     TextWrapping="Wrap"></TextBox>
+
+                <Label Content="ChatId" 
+                   Grid.Row="2" 
+                   Padding="5,10,0,0"></Label>
+                <TextBox Name="ChatIdTextBox" 
+                 Text="{Binding Source={x:Static local:Config.Instance}, Path=ChatId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 Grid.Row="3"></TextBox>
+
+                <Label Content="ReplyMessageId" 
+                   Grid.Row="4"
+                   Padding="5,10,0,0"></Label>
+                <TextBox Name="ReplyMessageIdTextBox" 
+                     Grid.Row="5">
+                    <TextBox.Text>
+                        <Binding Path="ReplyMessageId" Source="{x:Static local:Config.Instance}" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.Converter>
+                                <local:NullInt32Converter/>
+                            </Binding.Converter>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Window>

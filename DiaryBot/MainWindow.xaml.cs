@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Drawing;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 
 namespace DiaryBot
@@ -12,6 +12,8 @@ namespace DiaryBot
     /// </summary>
     public partial class MainWindow : Window
     {
+        private bool isSettingsSelected = false;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -20,31 +22,34 @@ namespace DiaryBot
 
         private void UpdateRecentGrid()
         {
-            Label recentLabel = RecentLabel;
             RecentGrid.Children.Clear();
-            RecentGrid.Children.Add(recentLabel);
             for (int i = 0; i < Messages.Instance.MessagesList.Count; i++)
             {
                 var button = new Button
                 {
-                    Margin = new(1.0),
+                    Margin = new Thickness(5),
                     Name = "recentMessage" + i,
                     Background = Brushes.LightGray,
-                    Padding = new(2.0)
+                    Padding = new(5.0),
+                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                    VerticalContentAlignment = VerticalAlignment.Stretch
                 };
-                var textBlock = new TextBlock
+                var xaml = "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"> "
+        + HtmlElement.ToXaml(Messages.Instance.MessagesList[i].Text) + " </TextBlock>";
+                var textBlock = XamlReader.Parse(xaml) as TextBlock;
+                if (textBlock != null)
                 {
-                    Text = Messages.Instance.MessagesList[i].Text,
-                    TextWrapping = TextWrapping.Wrap
-                };
-                button.Content = textBlock;
+                    textBlock.TextWrapping = TextWrapping.Wrap;
+                    button.Content = textBlock;
+                }
                 if (Messages.Instance[i]?.Id == Messages.Instance.PickedMessage?.Id)
                 {
-                    button.Background = Brushes.LightGreen;
+                    button.Background = Brushes.LightGoldenrodYellow;
                 }
                 button.Click += RecentButton_Click;
                 RecentGrid.Children.Add(button);
-                Grid.SetRow(button, i + 1);
+                Grid.SetColumn(button, i % 2);
+                Grid.SetRow(button, i / 2);
             }
         }
 
@@ -54,7 +59,6 @@ namespace DiaryBot
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.SendMessage(text);
-                UpdateRecentGrid();
             }
         }
 
@@ -64,13 +68,7 @@ namespace DiaryBot
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.EditPickedMessage(text);
-                UpdateRecentGrid();
             }
-        }
-
-        private void UpdateConfigButton_Click(object sender, RoutedEventArgs e)
-        {
-            Serializer.Save(Config.Path, Config.Instance);
         }
 
         private void RecentButton_Click(object sender, RoutedEventArgs e)
@@ -87,10 +85,77 @@ namespace DiaryBot
                     }
                     else
                     {
-                        (obj as Button).Background = Brushes.LightGreen;
+                        (obj as Button).Background = Brushes.LightGoldenrodYellow;
                     }
                 }
             }
         }
+
+        private void MessageTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (((e.Key == Key.B || e.Key == Key.I || e.Key == Key.U) && (Keyboard.Modifiers & ModifierKeys.Control) > 0) ||
+                    ((e.Key == Key.X || e.Key == Key.P) && (Keyboard.Modifiers & ModifierKeys.Control) > 0 && (Keyboard.Modifiers & ModifierKeys.Shift) > 0))
+            {
+                e.Handled = true;
+                string formatedSelectedText = "";
+                switch (e.Key)
+                {
+                    case Key.B:
+                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Bold);
+                        break;
+                    case Key.I:
+                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Italic);
+                        break;
+                    case Key.U:
+                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Underline);
+                        break;
+                    case Key.X:
+                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Strikethrough);
+                        break;
+                    case Key.P:
+                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Spoiler);
+                        break;
+                    default:
+                        break;
+                }
+                MessageTextBox.Text = MessageTextBox.Text[..MessageTextBox.SelectionStart] + formatedSelectedText +
+                    MessageTextBox.Text[(MessageTextBox.SelectionStart + MessageTextBox.SelectionLength)..];
+            }
+        }
+
+        private void MainWindowTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (RecentTab.IsSelected)
+            {
+                UpdateRecentGrid();
+            }
+            else if (SettingsTab.IsSelected)
+            {
+                isSettingsSelected = true;
+            }
+            else if (PreviewTab.IsSelected)
+            {
+                try
+                {
+                    PreviewGrid.Children.Clear();
+                    var xaml = "<TextBlock xmlns = \"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">"
+                        + HtmlElement.ToXaml(MessageTextBox.Text) +
+                        "</TextBlock>";
+                    var textBlock = XamlReader.Parse(xaml) as TextBlock;
+                    PreviewGrid.Children.Add(textBlock);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+
+            if (isSettingsSelected && !SettingsTab.IsSelected)
+            {
+                Serializer.Save(Config.Path, Config.Instance);
+                isSettingsSelected = false;
+            }
+        }
     }
 }
+
