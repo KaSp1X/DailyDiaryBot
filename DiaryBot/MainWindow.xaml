@@ -23,8 +23,50 @@
                          TextAlignment="Justify"
                          AcceptsReturn="True"
                          VerticalScrollBarVisibility="Visible"
-                         KeyDown="MessageTextBox_KeyDown"
                          TextChanged="MessageTextBox_TextChanged">
+                    <TextBox.CommandBindings>
+                        <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"
+                                        Executed="SetBoldCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="local:FormattingCommand.SetItalicTextCmd"
+                                        Executed="SetItalicCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="local:FormattingCommand.SetUnderlineTextCmd"
+                                        Executed="SetUnderlineCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
+                                        Executed="SetStrikethroughCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
+                                        Executed="SetSpoilerCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                    </TextBox.CommandBindings>
+                    <TextBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="ApplicationCommands.Undo"/>
+                            <MenuItem Command="ApplicationCommands.Redo"/>
+                            <Separator/>
+                            <MenuItem Command="ApplicationCommands.Copy"/>
+                            <MenuItem Command="ApplicationCommands.Cut"/>
+                            <MenuItem Command="ApplicationCommands.Paste"/>
+                            <MenuItem Command="ApplicationCommands.Delete"/>
+                            <Separator/>
+                            <MenuItem Header="_Formatting">
+                                <MenuItem Header="Bold"
+                                          Command="local:FormattingCommand.SetBoldTextCmd"/>
+                                <MenuItem Header="Italic" 
+                                          Command="local:FormattingCommand.SetItalicTextCmd"/>
+                                <MenuItem Header="Underline"
+                                          Command="local:FormattingCommand.SetUnderlineTextCmd"/>
+                                <MenuItem Header="Strikethrough"
+                                          Command="local:FormattingCommand.SetStrikethroughTextCmd"/>
+                                <MenuItem Header="Spoiler"
+                                          Command="local:FormattingCommand.SetSpoilerTextCmd"/>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Command="ApplicationCommands.SelectAll"/>
+                        </ContextMenu>
+                    </TextBox.ContextMenu>
                 </TextBox>
                 <TextBlock Name="ErrorTextBlock"
                            HorizontalAlignment="Stretch"

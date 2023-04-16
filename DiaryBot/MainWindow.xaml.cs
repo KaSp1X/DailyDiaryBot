@@ -96,43 +96,6 @@ namespace DiaryBot
             }
         }
 
-        private void MessageTextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (((e.Key == Key.B || e.Key == Key.I || e.Key == Key.U) && (Keyboard.Modifiers & ModifierKeys.Control) > 0) ||
-                    ((e.Key == Key.X || e.Key == Key.P) && (Keyboard.Modifiers & ModifierKeys.Control) > 0 && (Keyboard.Modifiers & ModifierKeys.Shift) > 0))
-            {
-                if (MessageTextBox.SelectionLength > 0)
-                {
-                    e.Handled = true;
-                    string formatedSelectedText = "";
-                    switch (e.Key)
-                    {
-                        case Key.B:
-                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Bold);
-                            break;
-                        case Key.I:
-                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Italic);
-                            break;
-                        case Key.U:
-                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Underline);
-                            break;
-                        case Key.X:
-                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Strikethrough);
-                            break;
-                        case Key.P:
-                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Spoiler);
-                            break;
-                        default:
-                            break;
-                    }
-                    int caretIndex = MessageTextBox.SelectionStart;
-                    MessageTextBox.Text = MessageTextBox.Text[..MessageTextBox.SelectionStart] + formatedSelectedText +
-                        MessageTextBox.Text[(MessageTextBox.SelectionStart + MessageTextBox.SelectionLength)..];
-                    MessageTextBox.CaretIndex = caretIndex + 4;
-                }
-            }
-        }
-
         private void MainWindowTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (RecentTab.IsSelected)
@@ -160,6 +123,33 @@ namespace DiaryBot
                     + FormattingTag.ToXaml(MessageTextBox.Text) +
                     "</TextBlock>";
             PreviewWindow.Child = XamlReader.Parse(xaml) as TextBlock;
+        }
+
+        private void FormattingCmd_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (MessageTextBox.SelectionLength > 0)    
+                e.CanExecute = true;
+            else
+                e.CanExecute = false;
+        }
+
+        private void SetBoldCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Bold);
+
+        private void SetItalicCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Italic);
+
+        private void SetUnderlineCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Underline);
+
+        private void SetStrikethroughCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Strikethrough);
+
+        private void SetSpoilerCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Spoiler);
+
+        private void FormatText(string tag)
+        {
+            string formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, tag);
+            int caretIndex = MessageTextBox.SelectionStart;
+            MessageTextBox.Text = MessageTextBox.Text[..MessageTextBox.SelectionStart] + formatedSelectedText +
+                MessageTextBox.Text[(MessageTextBox.SelectionStart + MessageTextBox.SelectionLength)..];
+            MessageTextBox.CaretIndex = caretIndex + 4;
         }
     }
 }
