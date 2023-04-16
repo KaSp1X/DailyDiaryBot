@@ -31,7 +31,7 @@ namespace DiaryBot
                 else
                     try
                     {
-                        var htmlMessage = HtmlElement.ToHtml(message);
+                        var htmlMessage = FormattingTag.ToHtml(message);
                         var result = await client.SendTextMessageAsync(Config.Instance.ChatId, htmlMessage, ParseMode.Html, replyToMessageId: Config.Instance.ReplyMessageId);
                         Messages.AddLastMessage(result.MessageId, message);
                     }
@@ -57,7 +57,7 @@ namespace DiaryBot
                 else
                     try
                     {
-                        var htmlMessage = HtmlElement.ToHtml(message);
+                        var htmlMessage = FormattingTag.ToHtml(message);
                         var result = await client.EditMessageTextAsync(Config.Instance.ChatId, Messages.Instance.PickedMessage.Value.Id , htmlMessage, ParseMode.Html);
                         Messages.UpdateLastMessage(result.MessageId, message);
                     }

@@ -40,7 +40,7 @@ namespace DiaryBot
                     VerticalContentAlignment = VerticalAlignment.Stretch
                 };
                 var xaml = "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"> "
-        + HtmlElement.ToXaml(Messages.Instance.MessagesList[i].Text) + " </TextBlock>";
+        + FormattingTag.ToXaml(Messages.Instance.MessagesList[i].Text) + " </TextBlock>";
                 var textBlock = XamlReader.Parse(xaml) as TextBlock;
                 if (textBlock != null)
                 {
@@ -78,7 +78,7 @@ namespace DiaryBot
 
         private void RecentButton_Click(object sender, RoutedEventArgs e)
         {
-            Messages.Instance.PickedMessage = Messages.Instance[Grid.GetRow((Button)sender) - 1];
+            Messages.Instance.PickedMessage = Messages.Instance[(Grid.GetRow((Button)sender) == 1 ? 2 : 0) + Grid.GetColumn((Button)sender)];
             MessageTextBox.Text = Messages.Instance.PickedMessage?.Text;
             foreach (UIElement obj in RecentGrid.Children)
             {
@@ -108,19 +108,19 @@ namespace DiaryBot
                     switch (e.Key)
                     {
                         case Key.B:
-                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Bold);
+                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Bold);
                             break;
                         case Key.I:
-                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Italic);
+                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Italic);
                             break;
                         case Key.U:
-                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Underline);
+                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Underline);
                             break;
                         case Key.X:
-                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Strikethrough);
+                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Strikethrough);
                             break;
                         case Key.P:
-                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Spoiler);
+                            formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, FormattingTag.Spoiler);
                             break;
                         default:
                             break;
@@ -128,7 +128,7 @@ namespace DiaryBot
                     int caretIndex = MessageTextBox.SelectionStart;
                     MessageTextBox.Text = MessageTextBox.Text[..MessageTextBox.SelectionStart] + formatedSelectedText +
                         MessageTextBox.Text[(MessageTextBox.SelectionStart + MessageTextBox.SelectionLength)..];
-                    MessageTextBox.CaretIndex = caretIndex + 2;
+                    MessageTextBox.CaretIndex = caretIndex + 4;
                 }
             }
         }
@@ -153,10 +153,13 @@ namespace DiaryBot
 
         private void MessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            var xaml = "<TextBlock xmlns = \"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" Padding=\"5\" TextWrapping=\"Wrap\" TextAlignment=\"Justify\" > "
-                    + HtmlElement.ToXaml(MessageTextBox.Text) +
+            var xaml = """
+                    <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    Padding="2" Margin="5" FontSize="10" TextWrapping="Wrap" TextAlignment="Justify">
+                    """
+                    + FormattingTag.ToXaml(MessageTextBox.Text) +
                     "</TextBlock>";
-            PreviewWindow.Child = XamlReader.Parse(xaml,true) as TextBlock;
+            PreviewWindow.Child = XamlReader.Parse(xaml) as TextBlock;
         }
     }
 }

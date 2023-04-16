@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:c1="http://schemas.componentone.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:DiaryBot"
         mc:Ignorable="d"
         Name="DiaryMainWindow"
@@ -65,10 +64,12 @@
                     Click="EditLastMessageButton_Click" 
                     Grid.Row="1" Margin="0,0,0,5" Height="30" 
                     VerticalAlignment="Top">Edit</Button>
-                    <Border x:Name="PreviewWindow"
-                            Grid.Row="2"
-                            BorderThickness="1"
-                            BorderBrush="Gray"/>
+                    <ScrollViewer Grid.Row="2"
+                                  VerticalScrollBarVisibility="Auto">
+                        <Border x:Name="PreviewWindow"
+                                BorderThickness="1"
+                                BorderBrush="Gray"/>
+                    </ScrollViewer>
                 </Grid>
             </Grid>
         </TabItem>
