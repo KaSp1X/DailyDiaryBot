@@ -1,9 +1,15 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DiaryBot
 {
@@ -17,7 +23,6 @@ namespace DiaryBot
         public MainWindow()
         {
             InitializeComponent();
-            UpdateRecentGrid();
         }
 
         private void UpdateRecentGrid()
@@ -96,30 +101,35 @@ namespace DiaryBot
             if (((e.Key == Key.B || e.Key == Key.I || e.Key == Key.U) && (Keyboard.Modifiers & ModifierKeys.Control) > 0) ||
                     ((e.Key == Key.X || e.Key == Key.P) && (Keyboard.Modifiers & ModifierKeys.Control) > 0 && (Keyboard.Modifiers & ModifierKeys.Shift) > 0))
             {
-                e.Handled = true;
-                string formatedSelectedText = "";
-                switch (e.Key)
+                if (MessageTextBox.SelectionLength > 0)
                 {
-                    case Key.B:
-                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Bold);
-                        break;
-                    case Key.I:
-                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Italic);
-                        break;
-                    case Key.U:
-                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Underline);
-                        break;
-                    case Key.X:
-                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Strikethrough);
-                        break;
-                    case Key.P:
-                        formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Spoiler);
-                        break;
-                    default:
-                        break;
+                    e.Handled = true;
+                    string formatedSelectedText = "";
+                    switch (e.Key)
+                    {
+                        case Key.B:
+                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Bold);
+                            break;
+                        case Key.I:
+                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Italic);
+                            break;
+                        case Key.U:
+                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Underline);
+                            break;
+                        case Key.X:
+                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Strikethrough);
+                            break;
+                        case Key.P:
+                            formatedSelectedText = HtmlElement.Insert(MessageTextBox.SelectedText, HtmlElement.Spoiler);
+                            break;
+                        default:
+                            break;
+                    }
+                    int caretIndex = MessageTextBox.SelectionStart;
+                    MessageTextBox.Text = MessageTextBox.Text[..MessageTextBox.SelectionStart] + formatedSelectedText +
+                        MessageTextBox.Text[(MessageTextBox.SelectionStart + MessageTextBox.SelectionLength)..];
+                    MessageTextBox.CaretIndex = caretIndex + 2;
                 }
-                MessageTextBox.Text = MessageTextBox.Text[..MessageTextBox.SelectionStart] + formatedSelectedText +
-                    MessageTextBox.Text[(MessageTextBox.SelectionStart + MessageTextBox.SelectionLength)..];
             }
         }
 
@@ -133,22 +143,6 @@ namespace DiaryBot
             {
                 isSettingsSelected = true;
             }
-            else if (PreviewTab.IsSelected)
-            {
-                try
-                {
-                    PreviewGrid.Children.Clear();
-                    var xaml = "<TextBlock xmlns = \"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">"
-                        + HtmlElement.ToXaml(MessageTextBox.Text) +
-                        "</TextBlock>";
-                    var textBlock = XamlReader.Parse(xaml) as TextBlock;
-                    PreviewGrid.Children.Add(textBlock);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
 
             if (isSettingsSelected && !SettingsTab.IsSelected)
             {
@@ -156,6 +150,13 @@ namespace DiaryBot
                 isSettingsSelected = false;
             }
         }
+
+        private void MessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var xaml = "<TextBlock xmlns = \"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" Padding=\"5\" TextWrapping=\"Wrap\" TextAlignment=\"Justify\" > "
+                    + HtmlElement.ToXaml(MessageTextBox.Text) +
+                    "</TextBlock>";
+            PreviewWindow.Child = XamlReader.Parse(xaml,true) as TextBlock;
+        }
     }
 }
-

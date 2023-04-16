@@ -31,7 +31,8 @@ namespace DiaryBot
                 else
                     try
                     {
-                        var result = await client.SendTextMessageAsync(Config.Instance.ChatId, message, ParseMode.Html, replyToMessageId: Config.Instance.ReplyMessageId);
+                        var htmlMessage = HtmlElement.ToHtml(message);
+                        var result = await client.SendTextMessageAsync(Config.Instance.ChatId, htmlMessage, ParseMode.Html, replyToMessageId: Config.Instance.ReplyMessageId);
                         Messages.AddLastMessage(result.MessageId, message);
                     }
                     catch (RequestException ex)
@@ -56,7 +57,8 @@ namespace DiaryBot
                 else
                     try
                     {
-                        var result = await client.EditMessageTextAsync(Config.Instance.ChatId, Messages.Instance.PickedMessage.Value.Id , message, ParseMode.Html);
+                        var htmlMessage = HtmlElement.ToHtml(message);
+                        var result = await client.EditMessageTextAsync(Config.Instance.ChatId, Messages.Instance.PickedMessage.Value.Id , htmlMessage, ParseMode.Html);
                         Messages.UpdateLastMessage(result.MessageId, message);
                     }
                     catch (RequestException ex) when (ex.Message == "Bad Request: message to edit not found")

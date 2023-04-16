@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:c1="http://schemas.componentone.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:DiaryBot"
         mc:Ignorable="d"
         Name="DiaryMainWindow"
@@ -15,65 +16,60 @@
                       Margin="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="150"/>
                 </Grid.ColumnDefinitions>
                 <TextBox Name="MessageTextBox"
-                     Padding="5"
-                     TextWrapping="WrapWithOverflow"
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Visible"
-                     KeyDown="MessageTextBox_KeyDown">
+                         Padding="5"
+                         TextWrapping="Wrap"
+                         TextAlignment="Justify"
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Visible"
+                         KeyDown="MessageTextBox_KeyDown"
+                         TextChanged="MessageTextBox_TextChanged">
                 </TextBox>
-                <local:ErrorLabel x:Name="ErrorMessageLabel"
-                                      Opacity="0"
-                                      Width="170"
-                                      HorizontalContentAlignment="Center"
-                                      Foreground="Red"
-                                      Background="WhiteSmoke"
-                                      FontWeight="Bold"
-                                      VerticalAlignment="Bottom"
-                                      HorizontalAlignment="Center"
-                                      Margin="0,0,20,10">
-                    <TextBlock TextWrapping="WrapWithOverflow" Text="{Binding Source={x:Static local:Error.Instance}, Path=Message}"/>
-                    <local:ErrorLabel.Style>
-                        <Style TargetType="{x:Type local:ErrorLabel}" BasedOn="{StaticResource {x:Type Label}}">
-                            <Style.Triggers>
-                                <EventTrigger RoutedEvent="ContentChanged">
-                                    <EventTrigger.Actions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1.0"/>
-                                                <DoubleAnimation Duration="0:0:3" BeginTime="0:0:5" Storyboard.TargetProperty="Opacity" From="1.0"
-                                            To="0.0"/>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger.Actions>
-                                </EventTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </local:ErrorLabel.Style>
-                </local:ErrorLabel>
-                <Grid Name="ControlButtonsGrid"
-                          Grid.Column="1">
+                <TextBlock Name="ErrorTextBlock"
+                           HorizontalAlignment="Stretch"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           Foreground="Red"
+                           FontWeight="Bold"
+                           VerticalAlignment="Bottom"
+                           Margin="3,0,21,5"
+                           Text ="{Binding Source={x:Static local:Error.Instance}, Path=Message, NotifyOnTargetUpdated=True}">
+                    <TextBlock.Triggers>
+                        <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1.0"/>
+                                    <DoubleAnimation Duration="0:0:3" BeginTime="0:0:5" 
+                                                     Storyboard.TargetProperty="Opacity" 
+                                                     From="1.0" To="0.0"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </TextBlock.Triggers>
+                </TextBlock>
+                <Grid Name="ControlGrid"
+                      Grid.Column="1"
+                      Margin="10,0,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="40"></RowDefinition>
                         <RowDefinition Height="40"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
                     </Grid.RowDefinitions>
                     <Button Name="SendMessageButton" 
                     Click="SendMessageButton_Click" 
-                    Grid.Row="0" Margin="10,0,0,10" Height="30" 
+                    Grid.Row="0" Margin="0,0,0,5" Height="30" 
                     VerticalAlignment="Top">Send</Button>
                     <Button Name="EditLastMessageButton" 
                     Click="EditLastMessageButton_Click" 
-                    Grid.Row="1" Margin="10,0,0,10" Height="30" 
+                    Grid.Row="1" Margin="0,0,0,5" Height="30" 
                     VerticalAlignment="Top">Edit</Button>
+                    <Border x:Name="PreviewWindow"
+                            Grid.Row="2"
+                            BorderThickness="1"
+                            BorderBrush="Gray"/>
                 </Grid>
-            </Grid>
-        </TabItem>
-        <TabItem Header="Preview"
-                 Name="PreviewTab">
-            <Grid x:Name="PreviewGrid"
-                Margin="10">
             </Grid>
         </TabItem>
         <TabItem Header="Recent"
