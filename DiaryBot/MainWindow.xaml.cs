@@ -39,7 +39,7 @@ namespace DiaryBot
                     HorizontalContentAlignment = HorizontalAlignment.Stretch,
                     VerticalContentAlignment = VerticalAlignment.Stretch
                 };
-                var xaml = "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"> "
+                var xaml = "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\"> "
         + FormattingTag.ToXaml(Messages.Instance.MessagesList[i].Text) + " </TextBlock>";
                 var textBlock = XamlReader.Parse(xaml) as TextBlock;
                 if (textBlock != null)
@@ -118,11 +118,11 @@ namespace DiaryBot
         {
             var xaml = """
                     <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    Padding="2" Margin="5" FontSize="10" TextWrapping="Wrap" TextAlignment="Justify">
+                    Padding="2" Margin="5" FontSize="10" TextWrapping="Wrap" TextAlignment="Justify" xml:space="preserve">
                     """
                     + FormattingTag.ToXaml(MessageTextBox.Text) +
                     "</TextBlock>";
-            PreviewWindow.Child = XamlReader.Parse(xaml) as TextBlock;
+            PreviewWindow.Content = XamlReader.Parse(xaml) as TextBlock;
         }
 
         private void FormattingCmd_CanExecute(object sender, CanExecuteRoutedEventArgs e)

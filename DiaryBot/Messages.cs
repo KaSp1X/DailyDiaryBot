@@ -59,7 +59,7 @@ namespace DiaryBot
         public static void AddLastMessage(int id, string text)
         {
 
-            for (int i = Math.Min(4, Instance._messagesList.Count); i > 0; i--)
+            for (int i = Math.Min(3, Instance._messagesList.Count); i > 0; i--)
             {
                 if (Instance._messagesList.Count == i && i < 4)
                     Instance._messagesList.Add(Instance._messagesList[i - 1]);

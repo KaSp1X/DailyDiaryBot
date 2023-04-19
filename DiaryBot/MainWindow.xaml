@@ -14,15 +14,14 @@
             <Grid x:Name="Main"
                       Margin="10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="62*"/>
+                    <ColumnDefinition Width="38*"/>
                 </Grid.ColumnDefinitions>
                 <TextBox Name="MessageTextBox"
                          Padding="5"
                          TextWrapping="Wrap"
-                         TextAlignment="Justify"
                          AcceptsReturn="True"
-                         VerticalScrollBarVisibility="Visible"
+                         VerticalScrollBarVisibility="Auto"
                          TextChanged="MessageTextBox_TextChanged">
                     <TextBox.CommandBindings>
                         <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"
@@ -71,6 +70,7 @@
                 <TextBlock Name="ErrorTextBlock"
                            HorizontalAlignment="Stretch"
                            TextWrapping="Wrap"
+                           Visibility="Hidden"
                            TextAlignment="Center"
                            Foreground="Red"
                            FontWeight="Bold"
@@ -81,6 +81,10 @@
                         <EventTrigger RoutedEvent="Binding.TargetUpdated">
                             <BeginStoryboard>
                                 <Storyboard>
+                                    <ObjectAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="ErrorTextBlock" Storyboard.TargetProperty="(UIElement.Visibility)">
+                                        <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Visible}"/>
+                                        <DiscreteObjectKeyFrame KeyTime="0:0:8" Value="{x:Static Visibility.Hidden}"/>
+                                    </ObjectAnimationUsingKeyFrames>
                                     <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1.0"/>
                                     <DoubleAnimation Duration="0:0:3" BeginTime="0:0:5" 
                                                      Storyboard.TargetProperty="Opacity" 
@@ -95,23 +99,25 @@
                       Margin="10,0,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="40"></RowDefinition>
-                        <RowDefinition Height="40"></RowDefinition>
                         <RowDefinition Height="*"></RowDefinition>
                     </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
                     <Button Name="SendMessageButton" 
                     Click="SendMessageButton_Click" 
-                    Grid.Row="0" Margin="0,0,0,5" Height="30" 
+                    Grid.Row="0" Grid.Column="0" Margin="0,0,5,5" Height="30" 
                     VerticalAlignment="Top">Send</Button>
                     <Button Name="EditLastMessageButton" 
                     Click="EditLastMessageButton_Click" 
-                    Grid.Row="1" Margin="0,0,0,5" Height="30" 
+                    Grid.Row="0" Grid.Column="1" Margin="5,0,0,5" Height="30" 
                     VerticalAlignment="Top">Edit</Button>
-                    <ScrollViewer Grid.Row="2"
-                                  VerticalScrollBarVisibility="Auto">
-                        <Border x:Name="PreviewWindow"
-                                BorderThickness="1"
-                                BorderBrush="Gray"/>
-                    </ScrollViewer>
+                    <Border BorderThickness="1"
+                            BorderBrush="DarkGray"
+                            Grid.Row="1" Grid.ColumnSpan="2">
+                        <ScrollViewer x:Name="PreviewWindow" VerticalScrollBarVisibility="Auto"/>
+                    </Border>
                 </Grid>
             </Grid>
         </TabItem>
@@ -149,22 +155,25 @@
                    Grid.Row="0"
                    Padding="5,0"></Label>
                 <TextBox Name="TokenTextBox" 
-                     Text="{Binding Source={x:Static local:Config.Instance}, Path=Token, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Grid.Row="1"
-                     TextWrapping="Wrap"></TextBox>
+                         Text="{Binding Source={x:Static local:Config.Instance}, Path=Token, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                         Grid.Row="1"
+                         Padding="5"
+                         TextWrapping="Wrap"></TextBox>
 
                 <Label Content="ChatId" 
                    Grid.Row="2" 
                    Padding="5,10,0,0"></Label>
                 <TextBox Name="ChatIdTextBox" 
-                 Text="{Binding Source={x:Static local:Config.Instance}, Path=ChatId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                 Grid.Row="3"></TextBox>
+                         Text="{Binding Source={x:Static local:Config.Instance}, Path=ChatId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                         Padding="5"
+                         Grid.Row="3"></TextBox>
 
                 <Label Content="ReplyMessageId" 
                    Grid.Row="4"
                    Padding="5,10,0,0"></Label>
                 <TextBox Name="ReplyMessageIdTextBox" 
-                     Grid.Row="5">
+                         Padding="5"
+                         Grid.Row="5">
                     <TextBox.Text>
                         <Binding Path="ReplyMessageId" Source="{x:Static local:Config.Instance}" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged">
                             <Binding.Converter>
