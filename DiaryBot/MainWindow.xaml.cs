@@ -1,15 +1,9 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace DiaryBot
 {
@@ -39,8 +33,9 @@ namespace DiaryBot
                     HorizontalContentAlignment = HorizontalAlignment.Stretch,
                     VerticalContentAlignment = VerticalAlignment.Stretch
                 };
-                var xaml = "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\"> "
-        + FormattingTag.ToXaml(Messages.Instance.MessagesList[i].Text) + " </TextBlock>";
+                string @fixed = Messages.Instance.MessagesList[i].Text.Replace("&", "&amp;").Replace("<", "&lt;");
+                var xaml = "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\">"
+        + @fixed.ToXaml() + " </TextBlock>";
                 var textBlock = XamlReader.Parse(xaml) as TextBlock;
                 if (textBlock != null)
                 {
@@ -116,12 +111,11 @@ namespace DiaryBot
 
         private void MessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            string @fixed = MessageTextBox.Text.Replace("&", "&amp;").Replace("<", "&lt;");
             var xaml = """
                     <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    Padding="2" Margin="5" FontSize="10" TextWrapping="Wrap" TextAlignment="Justify" xml:space="preserve">
-                    """
-                    + FormattingTag.ToXaml(MessageTextBox.Text) +
-                    "</TextBlock>";
+                    Padding="2" Margin="5" FontSize="10" TextWrapping="Wrap" xml:space="preserve">
+                    """ + @fixed.ToXaml() + "</TextBlock>";
             PreviewWindow.Content = XamlReader.Parse(xaml) as TextBlock;
         }
 
@@ -145,11 +139,17 @@ namespace DiaryBot
 
         private void FormatText(string tag)
         {
-            string formatedSelectedText = FormattingTag.Insert(MessageTextBox.SelectedText, tag);
             int caretIndex = MessageTextBox.SelectionStart;
-            MessageTextBox.Text = MessageTextBox.Text[..MessageTextBox.SelectionStart] + formatedSelectedText +
+            (bool inserted, string formatedMessage) = MessageTextBox.Text.Insert(MessageTextBox.SelectedText, caretIndex, caretIndex + MessageTextBox.SelectionLength, tag);
+            if (inserted)
+            {
+                MessageTextBox.Text = MessageTextBox.Text[..MessageTextBox.SelectionStart] + formatedMessage +
                 MessageTextBox.Text[(MessageTextBox.SelectionStart + MessageTextBox.SelectionLength)..];
-            MessageTextBox.CaretIndex = caretIndex + 4;
+
+                MessageTextBox.CaretIndex = caretIndex + 4;
+            }
+            else
+                MessageTextBox.CaretIndex = caretIndex;
         }
     }
 }
