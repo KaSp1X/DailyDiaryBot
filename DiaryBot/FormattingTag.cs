@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Windows;
 
@@ -46,26 +47,85 @@ namespace DiaryBot
                 return (false, selectedText);
 
             // tags are working bad with multilines, so we spliting selectedText and processing each line separately
+            string[] tags = new[] { Bold, Italic, Underline, Strikethrough, Spoiler };
             string[] textLines = selectedText.Split("\r\n");
             for (int i = 0; i < textLines.Length; i++)
             {
                 if (!string.IsNullOrWhiteSpace(textLines[i]))
                 {
+                    // searching single tags that are not equal to input tag to fix possible error with laying tags on each other
+                    // using priority queue to sort 
+                    PriorityQueue<string, int> innerTagsPQ = new();
+                    PriorityQueue<string, int> outerTagsPQ = new();
+                    foreach (var item in tags)
+                    {
+                        if (item != tag)
+                        {
+                            int indexOfStartTag = textLines[i].IndexOf(item[..4]);
+                            int indexOfEndTag = textLines[i].IndexOf(item[^5..]);
+                            if (indexOfStartTag > -1 && indexOfEndTag == -1)
+                            {
+                                innerTagsPQ.Enqueue(item[^5..], -indexOfStartTag);
+                                outerTagsPQ.Enqueue(item[..4], indexOfStartTag);
+                            }
+                            else if (indexOfStartTag == -1 && indexOfEndTag > -1)
+                            {
+                                innerTagsPQ.Enqueue(item[..4], -indexOfStartTag);
+                                outerTagsPQ.Enqueue(item[^5..], indexOfStartTag);
+                            }
+                        }
+                    }
+
+                    string innerPrefix = string.Empty, innerPostfix = string.Empty;
+                    string outerPrefix = string.Empty, outerPostfix = string.Empty;
+                    while (innerTagsPQ.Count > 0 || outerTagsPQ.Count > 0)
+                    {
+                        if (innerTagsPQ.Count > 0)
+                        {
+                            string item = innerTagsPQ.Dequeue();
+                            if (item.Length == 4) //start tag's (e.g.[\i]) length is 4, end's is 5
+                            {
+                                innerPrefix += item;
+                            }
+                            else
+                            {
+                                innerPostfix += item;
+                            }
+                        }
+
+                        if (outerTagsPQ.Count > 0)
+                        {
+                            string item = outerTagsPQ.Dequeue();
+                            if (item.Length == 5) //end tag's (e.g.[\i]) length is 5, end's is 5
+                            {
+                                outerPrefix += item;
+                            }
+                            else
+                            {
+                                outerPostfix += item;
+                            }
+                        }
+                    }
+
+                    // after we summarized all prefixes and postfixes, we add inner ones to current, not yet formatted textline
+                    // outers are added after textline has been formatted
+                    textLines[i] = innerPrefix + textLines[i] + innerPostfix;
+
                     // if we detect both tags inside a selected line, we remove them as we are expanding a tag zone
                     if (textLines[i].Contains(tag[..4]) && textLines[i].Contains(tag[^5..]))
-                        textLines[i] = tag.Replace("{message}", textLines[i].Replace(tag[..4], "").Replace(tag[^5..], ""));
+                        textLines[i] = outerPrefix + tag.Replace("{message}", textLines[i].Replace(tag[..4], "").Replace(tag[^5..], "")) + outerPostfix;
 
                     // if we detect only a start tag inside a selected line, we remove it and add an end tag to the end of a selected line
                     else if (textLines[i].Contains(tag[..4]))
-                        textLines[i] = tag[..^5].Replace("{message}", textLines[i].Replace(tag[..4], ""));
+                        textLines[i] = outerPrefix + tag[..^5].Replace("{message}", textLines[i].Replace(tag[..4], "")) + outerPostfix;
 
                     // if we detect only a end tag inside a selected line, we remove it and add an start tag to the start of a selected line
                     else if (textLines[i].Contains(tag[^5..]))
-                        textLines[i] = tag[4..].Replace("{message}", textLines[i].Replace(tag[^5..], ""));
-                    
+                        textLines[i] = outerPrefix + tag[4..].Replace("{message}", textLines[i].Replace(tag[^5..], "")) + outerPostfix;
+
                     // if there are no tags inside, we just add new tags
                     else
-                        textLines[i] = tag.Replace("{message}", textLines[i]);
+                        textLines[i] = outerPrefix + tag.Replace("{message}", textLines[i]) + outerPostfix;
                 }
             }
             // joining all lines and returning success of inserting
