@@ -59,7 +59,10 @@ namespace DiaryBot
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.SendMessage(text);
+                Error.Instance.Message = "Success";
             }
+            else
+                Error.Instance.Message = "Text to send can't be empty";
         }
 
         private async void EditLastMessageButton_Click(object sender, RoutedEventArgs e)
@@ -68,7 +71,10 @@ namespace DiaryBot
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.EditPickedMessage(text);
+                Error.Instance.Message = "Success";
             }
+            else
+                Error.Instance.Message = "Edited version of text can't be empty";
         }
 
         private void RecentButton_Click(object sender, RoutedEventArgs e)
