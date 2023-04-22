@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:DiaryBot"
         mc:Ignorable="d"
         Name="DiaryMainWindow"
-        Title="DairyBot" Height="350" Width="400"
+        Title="DairyBot" Height="450" Width="600"
         MinHeight="350" MinWidth="400">
     <TabControl x:Name="MainWindowTabControl"
                 SelectionChanged="MainWindowTabControl_SelectionChanged">
@@ -17,20 +17,20 @@
                     <ColumnDefinition Width="62*"/>
                     <ColumnDefinition Width="38*"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Name="MessageTextBox"
-                         Padding="5"
-                         TextWrapping="Wrap"
-                         AcceptsReturn="True"
-                         VerticalScrollBarVisibility="Auto"
-                         TextChanged="MessageTextBox_TextChanged">
-                    <TextBox.CommandBindings>
-                        <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"
+                <RichTextBox Name="MessageTextBox"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             Padding="5,7"
+                             TextChanged="MessageTextBox_TextChanged"
+                             Loaded="MessageTextBox_Loaded">
+                    <RichTextBox.CommandBindings>
+                        <CommandBinding Command="EditingCommands.ToggleBold"
                                         Executed="SetBoldCmd_Executed"
                                         CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="local:FormattingCommand.SetItalicTextCmd"
+                        <CommandBinding Command="EditingCommands.ToggleItalic"
                                         Executed="SetItalicCmd_Executed"
                                         CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="local:FormattingCommand.SetUnderlineTextCmd"
+                        <CommandBinding Command="EditingCommands.ToggleUnderline"
                                         Executed="SetUnderlineCmd_Executed"
                                         CanExecute="FormattingCmd_CanExecute"/>
                         <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
@@ -39,8 +39,8 @@
                         <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
                                         Executed="SetSpoilerCmd_Executed"
                                         CanExecute="FormattingCmd_CanExecute"/>
-                    </TextBox.CommandBindings>
-                    <TextBox.ContextMenu>
+                    </RichTextBox.CommandBindings>
+                    <RichTextBox.ContextMenu>
                         <ContextMenu>
                             <MenuItem Command="ApplicationCommands.Undo"/>
                             <MenuItem Command="ApplicationCommands.Redo"/>
@@ -51,22 +51,22 @@
                             <MenuItem Command="ApplicationCommands.Delete"/>
                             <Separator/>
                             <MenuItem Header="_Formatting">
-                                <MenuItem Header="Bold"
-                                          Command="local:FormattingCommand.SetBoldTextCmd"/>
-                                <MenuItem Header="Italic" 
-                                          Command="local:FormattingCommand.SetItalicTextCmd"/>
-                                <MenuItem Header="Underline"
-                                          Command="local:FormattingCommand.SetUnderlineTextCmd"/>
-                                <MenuItem Header="Strikethrough"
-                                          Command="local:FormattingCommand.SetStrikethroughTextCmd"/>
-                                <MenuItem Header="Spoiler"
-                                          Command="local:FormattingCommand.SetSpoilerTextCmd"/>
+                                <MenuItem Command="EditingCommands.ToggleBold"/>
+                                <MenuItem Command="EditingCommands.ToggleItalic"/>
+                                <MenuItem Command="EditingCommands.ToggleUnderline"/>
+                                <MenuItem Command="local:FormattingCommand.SetStrikethroughTextCmd"/>
+                                <MenuItem Command="local:FormattingCommand.SetSpoilerTextCmd"/>
                             </MenuItem>
                             <Separator/>
                             <MenuItem Command="ApplicationCommands.SelectAll"/>
                         </ContextMenu>
-                    </TextBox.ContextMenu>
-                </TextBox>
+                    </RichTextBox.ContextMenu>
+                    <RichTextBox.Resources>
+                        <Style TargetType="{x:Type Paragraph}">
+                            <Setter Property="Margin" Value="0"/>
+                        </Style>
+                    </RichTextBox.Resources>
+                </RichTextBox>
                 <TextBlock Name="ErrorTextBlock"
                            HorizontalAlignment="Stretch"
                            TextWrapping="Wrap"

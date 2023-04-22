@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Windows;
+using System.Windows.Documents;
 
 namespace DiaryBot
 {
@@ -13,38 +12,42 @@ namespace DiaryBot
         public const string Underline = @"[\u]{message}[\u0]";
         public const string Strikethrough = @"[\s]{message}[\s0]";
 
-        public static (bool, string) Insert(this string fullText, string selectedText, int selectedStart, int selectedEnd, string tag)
+        public static string Insert(TextRange selectedTextRange, string tag)
         {
+            string selectedText = selectedTextRange.Text;
+            string textBefore = selectedTextRange.Start.GetTextInRun(LogicalDirection.Backward);
+            string textAfter = selectedTextRange.End.GetTextInRun(LogicalDirection.Forward);
+
             // check if selectedText is already in needed tags
             bool hasTagOnLeft = false;
             bool hasTagOnRigth = false;
 
-            for (int i = selectedStart - 1; i >= 4; i--)
+            for (int i = textBefore.Length - 1; i >= 4; i--)
             {
-                if (fullText[..i].EndsWith(tag[..4]))
+                if (textBefore[..i].EndsWith(tag[..4]))
                 {
                     hasTagOnLeft = true;
                     break;
                 }
-                else if (fullText[..i].EndsWith(tag[^5..]))
+                else if (textBefore[..i].EndsWith(tag[^5..]))
                     break;
             }
 
-            for (int i = selectedEnd + 1; i < fullText.Length - 5; i++)
+            for (int i = 0; i < textAfter.Length - 5; i++)
             {
-                if (fullText[i..].StartsWith(tag[^5..]))
+                if (textAfter[i..].StartsWith(tag[^5..]))
                 {
                     hasTagOnRigth = true;
                     break;
                 }
-                else if (fullText[i..].StartsWith(tag[..4]))
+                else if (textAfter[i..].StartsWith(tag[..4]))
                     break;
             }
 
             // if we detect only tag on one side, we will slide it to the start or the end of the selectedText
             // if there are detected tags from both sides, we return the original selectedText, there is no need to modify it
             if (hasTagOnLeft && hasTagOnRigth)
-                return (false, selectedText);
+                return selectedText;
 
             // tags are working bad with multilines, so we spliting selectedText and processing each line separately
             string[] tags = new[] { Bold, Italic, Underline, Strikethrough, Spoiler };
@@ -128,8 +131,8 @@ namespace DiaryBot
                         textLines[i] = outerPrefix + tag.Replace("{message}", textLines[i]) + outerPostfix;
                 }
             }
-            // joining all lines and returning success of inserting
-            return (true, string.Join("\r\n", textLines));
+            // joining all lines
+            return string.Join("\r\n", textLines);
         }
 
         public static string ToHtml(this string text)

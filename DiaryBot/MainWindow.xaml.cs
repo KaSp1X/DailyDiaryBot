@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
@@ -55,7 +57,7 @@ namespace DiaryBot
 
         private async void SendMessageButton_Click(object sender, RoutedEventArgs e)
         {
-            string text = MessageTextBox.Text;
+            string text = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd).Text;
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.SendMessage(text);
@@ -67,7 +69,7 @@ namespace DiaryBot
 
         private async void EditLastMessageButton_Click(object sender, RoutedEventArgs e)
         {
-            string text = MessageTextBox.Text;
+            string text = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd).Text;
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.EditPickedMessage(text);
@@ -80,7 +82,8 @@ namespace DiaryBot
         private void RecentButton_Click(object sender, RoutedEventArgs e)
         {
             Messages.Instance.PickedMessage = Messages.Instance[(Grid.GetRow((Button)sender) == 1 ? 2 : 0) + Grid.GetColumn((Button)sender)];
-            MessageTextBox.Text = Messages.Instance.PickedMessage?.Text;
+            var textRange = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd);
+            textRange.Text = Messages.Instance.PickedMessage?.Text;
             foreach (UIElement obj in RecentGrid.Children)
             {
                 if (obj is Button)
@@ -117,20 +120,34 @@ namespace DiaryBot
 
         private void MessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            string @fixed = MessageTextBox.Text.Replace("&", "&amp;").Replace("<", "&lt;");
+            // to prevent overflow, we temporary remove event from our RichTextBox
+            MessageTextBox.TextChanged -= MessageTextBox_TextChanged;
+
+            // rendering preview window
+            string @fixed = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd).Text.Replace("&", "&amp;").Replace("<", "&lt;");
             var xaml = """
                     <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     Padding="2" Margin="5" FontSize="10" TextWrapping="Wrap" xml:space="preserve">
                     """ + @fixed.ToXaml() + "</TextBlock>";
             PreviewWindow.Content = XamlReader.Parse(xaml) as TextBlock;
+
+            // after everything is done return event to our RichTextBox
+            MessageTextBox.TextChanged += MessageTextBox_TextChanged;
         }
 
         private void FormattingCmd_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            if (MessageTextBox.SelectionLength > 0)    
+            e.Handled = true;
+            if (MessageTextBox.Selection.Text.Length > 0)
                 e.CanExecute = true;
             else
                 e.CanExecute = false;
+        }
+
+        private void EdittingCmd_CantExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = false;
+            e.Handled = true;
         }
 
         private void SetBoldCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Bold);
@@ -145,17 +162,40 @@ namespace DiaryBot
 
         private void FormatText(string tag)
         {
-            int caretIndex = MessageTextBox.SelectionStart;
-            (bool inserted, string formatedMessage) = MessageTextBox.Text.Insert(MessageTextBox.SelectedText, caretIndex, caretIndex + MessageTextBox.SelectionLength, tag);
-            if (inserted)
-            {
-                MessageTextBox.Text = MessageTextBox.Text[..MessageTextBox.SelectionStart] + formatedMessage +
-                MessageTextBox.Text[(MessageTextBox.SelectionStart + MessageTextBox.SelectionLength)..];
+            var selectedTextRange = new TextRange(MessageTextBox.Selection.Start, MessageTextBox.Selection.End);
 
-                MessageTextBox.CaretIndex = caretIndex + 4;
+            string formatedMessage = FormattingTag.Insert(selectedTextRange, tag);
+            if (!string.IsNullOrWhiteSpace(formatedMessage))
+            {
+                MessageTextBox.Selection.Text = formatedMessage;
             }
-            else
-                MessageTextBox.CaretIndex = caretIndex;
+        }
+
+        private void MessageTextBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            List<RoutedUICommand> commands = new()
+            {
+                EditingCommands.AlignCenter,
+                EditingCommands.AlignLeft,
+                EditingCommands.AlignRight,
+                EditingCommands.AlignJustify,
+                EditingCommands.DecreaseFontSize,
+                EditingCommands.DecreaseIndentation,
+                EditingCommands.IncreaseFontSize,
+                EditingCommands.IncreaseIndentation,
+                EditingCommands.ToggleBold,
+                EditingCommands.ToggleBullets,
+                EditingCommands.ToggleItalic,
+                EditingCommands.ToggleNumbering,
+                EditingCommands.ToggleSubscript,
+                EditingCommands.ToggleSuperscript,
+                EditingCommands.ToggleUnderline
+            };
+
+            foreach (RoutedUICommand command in commands)
+            {
+                MessageTextBox.CommandBindings.Add(new CommandBinding(command, null, EdittingCmd_CantExecute));
+            }
         }
     }
 }
