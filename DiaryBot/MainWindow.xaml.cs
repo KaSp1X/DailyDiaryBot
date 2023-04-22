@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -122,14 +122,34 @@ namespace DiaryBot
         {
             // to prevent overflow, we temporary remove event from our RichTextBox
             MessageTextBox.TextChanged -= MessageTextBox_TextChanged;
+            
+            var textRange = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd);
+
+            // highlighting tags in richtextbox
+            Regex reg = new Regex(@"\[\\[bivus][0]{0,1}\]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var start = MessageTextBox.Document.ContentStart;
+            while (start != null && start.CompareTo(MessageTextBox.Document.ContentEnd) < 0)
+            {
+                if (start.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
+                {
+                    var match = reg.Match(start.GetTextInRun(LogicalDirection.Forward));
+
+                    var range = new TextRange(start.GetPositionAtOffset(match.Index, LogicalDirection.Forward), start.GetPositionAtOffset(match.Index + match.Length, LogicalDirection.Backward));
+                    range.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(Colors.Blue));
+                    new TextRange(range.End, textRange.End).ClearAllProperties();
+                    start = range.End;
+                }
+                start = start.GetNextContextPosition(LogicalDirection.Forward);
+            }
 
             // rendering preview window
-            string @fixed = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd).Text.Replace("&", "&amp;").Replace("<", "&lt;");
+            string @fixed = textRange.Text.Replace("&", "&amp;").Replace("<", "&lt;");
             var xaml = """
                     <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     Padding="2" Margin="5" FontSize="10" TextWrapping="Wrap" xml:space="preserve">
                     """ + @fixed.ToXaml() + "</TextBlock>";
             PreviewWindow.Content = XamlReader.Parse(xaml) as TextBlock;
+
 
             // after everything is done return event to our RichTextBox
             MessageTextBox.TextChanged += MessageTextBox_TextChanged;
