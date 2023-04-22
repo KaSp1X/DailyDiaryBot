@@ -57,7 +57,7 @@ namespace DiaryBot
 
         private async void SendMessageButton_Click(object sender, RoutedEventArgs e)
         {
-            string text = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd).Text;
+            string text = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text;
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.SendMessage(text);
@@ -69,7 +69,7 @@ namespace DiaryBot
 
         private async void EditLastMessageButton_Click(object sender, RoutedEventArgs e)
         {
-            string text = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd).Text;
+            string text = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text;
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.EditPickedMessage(text);
@@ -82,7 +82,7 @@ namespace DiaryBot
         private void RecentButton_Click(object sender, RoutedEventArgs e)
         {
             Messages.Instance.PickedMessage = Messages.Instance[(Grid.GetRow((Button)sender) == 1 ? 2 : 0) + Grid.GetColumn((Button)sender)];
-            var textRange = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd);
+            var textRange = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd);
             textRange.Text = Messages.Instance.PickedMessage?.Text;
             foreach (UIElement obj in RecentGrid.Children)
             {
@@ -118,17 +118,17 @@ namespace DiaryBot
             }
         }
 
-        private void MessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void MessageRichTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             // to prevent overflow, we temporary remove event from our RichTextBox
-            MessageTextBox.TextChanged -= MessageTextBox_TextChanged;
+            MessageRichTextBox.TextChanged -= MessageRichTextBox_TextChanged;
             
-            var textRange = new TextRange(MessageTextBox.Document.ContentStart, MessageTextBox.Document.ContentEnd);
+            var textRange = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd);
 
             // highlighting tags in richtextbox
             Regex reg = new Regex(@"\[\\[bivus][0]{0,1}\]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var start = MessageTextBox.Document.ContentStart;
-            while (start != null && start.CompareTo(MessageTextBox.Document.ContentEnd) < 0)
+            var start = MessageRichTextBox.Document.ContentStart;
+            while (start != null && start.CompareTo(MessageRichTextBox.Document.ContentEnd) < 0)
             {
                 if (start.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
                 {
@@ -152,13 +152,13 @@ namespace DiaryBot
 
 
             // after everything is done return event to our RichTextBox
-            MessageTextBox.TextChanged += MessageTextBox_TextChanged;
+            MessageRichTextBox.TextChanged += MessageRichTextBox_TextChanged;
         }
 
         private void FormattingCmd_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.Handled = true;
-            if (MessageTextBox.Selection.Text.Length > 0)
+            if (MessageRichTextBox.Selection.Text.Length > 0)
                 e.CanExecute = true;
             else
                 e.CanExecute = false;
@@ -182,16 +182,16 @@ namespace DiaryBot
 
         private void FormatText(string tag)
         {
-            var selectedTextRange = new TextRange(MessageTextBox.Selection.Start, MessageTextBox.Selection.End);
+            var selectedTextRange = new TextRange(MessageRichTextBox.Selection.Start, MessageRichTextBox.Selection.End);
 
             string formatedMessage = FormattingTag.Insert(selectedTextRange, tag);
             if (!string.IsNullOrWhiteSpace(formatedMessage))
             {
-                MessageTextBox.Selection.Text = formatedMessage;
+                MessageRichTextBox.Selection.Text = formatedMessage;
             }
         }
 
-        private void MessageTextBox_Loaded(object sender, RoutedEventArgs e)
+        private void MessageRichTextBox_Loaded(object sender, RoutedEventArgs e)
         {
             List<RoutedUICommand> commands = new()
             {
@@ -214,7 +214,15 @@ namespace DiaryBot
 
             foreach (RoutedUICommand command in commands)
             {
-                MessageTextBox.CommandBindings.Add(new CommandBinding(command, null, EdittingCmd_CantExecute));
+                MessageRichTextBox.CommandBindings.Add(new CommandBinding(command, null, EdittingCmd_CantExecute));
+            }
+        }
+
+        private void MessageRichTextBox_Pasting(object sender, DataObjectPastingEventArgs e)
+        {
+            if (e.FormatToApply == "Bitmap")
+            {
+                e.CancelCommand();
             }
         }
     }

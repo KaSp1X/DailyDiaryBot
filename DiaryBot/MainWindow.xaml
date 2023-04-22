@@ -17,12 +17,13 @@
                     <ColumnDefinition Width="62*"/>
                     <ColumnDefinition Width="38*"/>
                 </Grid.ColumnDefinitions>
-                <RichTextBox Name="MessageTextBox"
+                <RichTextBox Name="MessageRichTextBox"
                              AcceptsReturn="True"
+                             DataObject.Pasting="MessageRichTextBox_Pasting"
                              VerticalScrollBarVisibility="Auto"
                              Padding="5,7"
-                             TextChanged="MessageTextBox_TextChanged"
-                             Loaded="MessageTextBox_Loaded">
+                             TextChanged="MessageRichTextBox_TextChanged"
+                             Loaded="MessageRichTextBox_Loaded">
                     <RichTextBox.CommandBindings>
                         <CommandBinding Command="EditingCommands.ToggleBold"
                                         Executed="SetBoldCmd_Executed"
