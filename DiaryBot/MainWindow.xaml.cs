@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -14,7 +18,7 @@ namespace DiaryBot
     /// </summary>
     public partial class MainWindow : Window
     {
-        private bool isSettingsSelected = false;
+        private System.Windows.Threading.DispatcherTimer timer;
 
         public MainWindow()
         {
@@ -29,7 +33,7 @@ namespace DiaryBot
                 var button = new Button
                 {
                     Margin = new Thickness(5),
-                    Name = "recentMessage" + i,
+                    Name = "RecentMessage" + i,
                     Background = Brushes.LightGray,
                     Padding = new(5.0),
                     HorizontalContentAlignment = HorizontalAlignment.Stretch,
@@ -55,13 +59,87 @@ namespace DiaryBot
             }
         }
 
+        private void UpdateProfilesPanel()
+        {
+            ProfilesStackPanel.Children.Clear();
+            for (int i = Configs.Instance.ConfigsList.Count - 1; i >= 0; i--)
+            {
+                string name = Configs.Instance.ConfigsList[i].Name.Replace("&", "&amp;").Replace("<", "&lt;");
+                string token = Configs.Instance.ConfigsList[i].Token.Replace("&", "&amp;").Replace("<", "&lt;");
+                string chatId = Configs.Instance.ConfigsList[i].ChatId.Replace("&", "&amp;").Replace("<", "&lt;");
+                string replyMessageId = Configs.Instance.ConfigsList[i].ReplyMessageId.ToString();
+                if (string.IsNullOrEmpty(replyMessageId))
+                    replyMessageId = "Empty";
+
+                var xaml = $"""
+                    <Button xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                            Name="Profile_{i}"
+                            xml:space="preserve"
+                            Height="75"
+                            Padding="5"
+                            VerticalContentAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch">
+                        <StackPanel>
+                            <TextBlock FontStyle="Italic" FontWeight="Medium">{name}</TextBlock>
+                            <TextBlock><TextBlock FontWeight="Medium">T: </TextBlock>{token.Split(':')[0]}</TextBlock>
+                            <TextBlock><TextBlock FontWeight="Medium">CId: </TextBlock>{chatId}</TextBlock>
+                            <TextBlock><TextBlock FontWeight="Medium">RMId: </TextBlock>{replyMessageId}</TextBlock>
+                        </StackPanel>
+                    </Button>
+                    """;
+                var button = XamlReader.Parse(xaml) as Button;
+                if (button != null)
+                {
+                    button.Click += ProfileButton_Click;
+                    if (Configs.Instance.ConfigsList[i].Equals(Configs.Instance.SelectedConfig))
+                    {
+                        button.Background = Brushes.LightGoldenrodYellow;
+                        NameTextBox.Text = Configs.Instance.SelectedConfig.Name;
+                        TokenTextBox.Text = Configs.Instance.SelectedConfig.Token;
+                        ChatIdTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
+                        ReplyMessageIdTextBox.Text = replyMessageId;
+                    }
+                    ProfilesStackPanel.Children.Add(button);
+                }
+            }
+        }
+
+        private void ProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (UIElement obj in ProfilesStackPanel.Children)
+            {
+                Button button = obj as Button;
+                if (button != sender)
+                    button.Background = Brushes.LightGray;
+                else
+                {
+                    button.Background = Brushes.LightGoldenrodYellow;
+                    int.TryParse(button.Name.Split('_')[1], out int index);
+                    if (index >= 0 && index < Configs.Instance.ConfigsList.Count)
+                    {
+                        Configs.Instance.SelectedConfig = Configs.Instance.ConfigsList[index];
+                        NameTextBox.Text = Configs.Instance.SelectedConfig.Name;
+                        TokenTextBox.Text = Configs.Instance.SelectedConfig.Token;
+                        if (long.TryParse(Configs.Instance.SelectedConfig.Token.Split(':')[0], out long token) && token != Bot.GetToken())
+                        {
+                            Bot.Instance = null;
+                        }
+                        ChatIdTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
+                        string replyMessageId = Configs.Instance.SelectedConfig.ReplyMessageId.ToString();
+                        if (string.IsNullOrEmpty(replyMessageId))
+                            replyMessageId = "Empty";
+                        ReplyMessageIdTextBox.Text = replyMessageId;
+                    }
+                }
+            }
+        }
+
         private async void SendMessageButton_Click(object sender, RoutedEventArgs e)
         {
             string text = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd).Text;
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.SendMessage(text);
-                Error.Instance.Message = "Success";
             }
             else
                 Error.Instance.Message = "Text to send can't be empty";
@@ -73,7 +151,6 @@ namespace DiaryBot
             if (!string.IsNullOrWhiteSpace(text))
             {
                 await Bot.Instance.EditPickedMessage(text);
-                Error.Instance.Message = "Success";
             }
             else
                 Error.Instance.Message = "Edited version of text can't be empty";
@@ -89,13 +166,9 @@ namespace DiaryBot
                 if (obj is Button)
                 {
                     if ((obj as Button) != sender)
-                    {
                         (obj as Button).Background = Brushes.LightGray;
-                    }
                     else
-                    {
                         (obj as Button).Background = Brushes.LightGoldenrodYellow;
-                    }
                 }
             }
         }
@@ -108,13 +181,7 @@ namespace DiaryBot
             }
             else if (SettingsTab.IsSelected)
             {
-                isSettingsSelected = true;
-            }
-
-            if (isSettingsSelected && !SettingsTab.IsSelected)
-            {
-                Serializer.Save(Config.Path, Config.Instance);
-                isSettingsSelected = false;
+                UpdateProfilesPanel();
             }
         }
 
@@ -122,7 +189,7 @@ namespace DiaryBot
         {
             // to prevent overflow, we temporary remove event from our RichTextBox
             MessageRichTextBox.TextChanged -= MessageRichTextBox_TextChanged;
-            
+
             var textRange = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd);
 
             // highlighting tags in richtextbox
@@ -224,6 +291,77 @@ namespace DiaryBot
             {
                 e.CancelCommand();
             }
+        }
+
+        private void UpdateConfigButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(NameTextBox.Text) ||
+                string.IsNullOrWhiteSpace(TokenTextBox.Text) ||
+                string.IsNullOrWhiteSpace(ChatIdTextBox.Text) ||
+                Configs.Instance.ConfigsList.Any(x => x.Name == NameTextBox.Text))
+                return;
+
+            // Update
+            Configs.Config config = new Configs.Config()
+            {
+                Name = NameTextBox.Text,
+                Token = TokenTextBox.Text,
+                ChatId = ChatIdTextBox.Text,
+                ReplyMessageId = int.TryParse(ReplyMessageIdTextBox.Text, out int replyMessageId) ? replyMessageId : null,
+            };
+            Configs.UpdateConfig(Configs.Instance.SelectedConfig, config);
+            UpdateProfilesPanel();
+        }
+
+        private void AddConfigButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(NameTextBox.Text) ||
+                string.IsNullOrWhiteSpace(TokenTextBox.Text) ||
+                string.IsNullOrWhiteSpace(ChatIdTextBox.Text) ||
+                Configs.Instance.ConfigsList.Any(x => x.Name == NameTextBox.Text))
+                return;
+
+            // Add
+            Configs.Config config = new Configs.Config()
+            {
+                Name = NameTextBox.Text,
+                Token = TokenTextBox.Text,
+                ChatId = ChatIdTextBox.Text,
+                ReplyMessageId = int.TryParse(ReplyMessageIdTextBox.Text, out int replyMessageId) ? replyMessageId : null,
+            };
+            Configs.AddConfig(config);
+            UpdateProfilesPanel();
+        }
+
+        private void DeleteConfigButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DeleteConfigButton.Content.ToString() == "Delete")
+            {
+                timer = new();
+                timer.Interval = TimeSpan.FromSeconds(3);
+                timer.Tick += TurnBackToNormalDeleteConfigButton;
+                DeleteConfigButton.Content = "Sure?";
+                DeleteConfigButton.Foreground = Brushes.Red;
+                timer.Start();
+            }
+            else
+            {
+                if (timer != null && timer.IsEnabled)
+                {
+                    TurnBackToNormalDeleteConfigButton();
+                    // Delete
+                    Configs.RemoveConfig(Configs.Instance.SelectedConfig);
+                    UpdateProfilesPanel();
+                }
+            }
+        }
+
+        private void TurnBackToNormalDeleteConfigButton(object? sender = null, EventArgs? e = null)
+        {
+            timer.Stop();
+            DeleteConfigButton.Content = "Delete";
+            DeleteConfigButton.Foreground = Brushes.Black;
+            timer = null;
         }
     }
 }
