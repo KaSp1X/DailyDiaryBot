@@ -1,15 +1,19 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Timers;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DiaryBot
 {
@@ -18,7 +22,8 @@ namespace DiaryBot
     /// </summary>
     public partial class MainWindow : Window
     {
-        private System.Windows.Threading.DispatcherTimer timer;
+        private System.Windows.Threading.DispatcherTimer removeConfigTimer;
+        private System.Windows.Threading.DispatcherTimer previewAndHighlightTagsTimer;
 
         public MainWindow()
         {
@@ -183,6 +188,22 @@ namespace DiaryBot
             {
                 UpdateProfilesPanel();
             }
+            else
+            {
+                ClearConfigsTab();
+                ClearRecentTab();
+            }
+        }
+
+        private void ClearRecentTab() => RecentGrid.Children.Clear();
+
+        private void ClearConfigsTab()
+        {
+            ProfilesStackPanel.Children.Clear();
+            NameTextBox.Clear();
+            TokenTextBox.Clear();
+            ChatIdTextBox.Clear();
+            ReplyMessageIdTextBox.Clear();
         }
 
         private void MessageRichTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -190,36 +211,95 @@ namespace DiaryBot
             // to prevent overflow, we temporary remove event from our RichTextBox
             MessageRichTextBox.TextChanged -= MessageRichTextBox_TextChanged;
 
-            var textRange = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd);
+            var range = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd);
 
-            // highlighting tags in richtextbox
-            Regex reg = new Regex(@"\[\\[bivus][0]{0,1}\]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var start = MessageRichTextBox.Document.ContentStart;
-            while (start != null && start.CompareTo(MessageRichTextBox.Document.ContentEnd) < 0)
+            // a timer to make less load on the system when editing large text
+            if (previewAndHighlightTagsTimer != null)
             {
-                if (start.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
-                {
-                    var match = reg.Match(start.GetTextInRun(LogicalDirection.Forward));
-
-                    var range = new TextRange(start.GetPositionAtOffset(match.Index, LogicalDirection.Forward), start.GetPositionAtOffset(match.Index + match.Length, LogicalDirection.Backward));
-                    range.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(Colors.Blue));
-                    new TextRange(range.End, textRange.End).ClearAllProperties();
-                    start = range.End;
-                }
-                start = start.GetNextContextPosition(LogicalDirection.Forward);
+                previewAndHighlightTagsTimer.Stop();
+                previewAndHighlightTagsTimer = null;
             }
 
-            // rendering preview window
-            string @fixed = textRange.Text.Replace("&", "&amp;").Replace("<", "&lt;");
-            var xaml = """
+            if (previewAndHighlightTagsTimer == null)
+            {
+                previewAndHighlightTagsTimer = new();
+                previewAndHighlightTagsTimer.Interval = TimeSpan.FromMilliseconds(200);
+                previewAndHighlightTagsTimer.Tick += (sender, e) =>
+                {
+                    // highlighting tags in richtextbox
+                    Regex reg = new Regex(@"\[\\[bivus][0]{0,1}\]*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    var start = range.Start;
+                    var end = range.End;
+                    range.ClearAllProperties();
+
+                    while (start != null && start.CompareTo(end) < 0)
+                    {
+                        if (start.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
+                        {
+                            var match = reg.Match(start.GetTextInRun(LogicalDirection.Forward));
+                            var subrange = new TextRange(start.GetPositionAtOffset(match.Index), start.GetPositionAtOffset(match.Index + match.Length));
+                            subrange.ApplyPropertyValue(ForegroundProperty, Brushes.Blue);
+                            new TextRange(subrange.End, end).ClearAllProperties();
+                            start = subrange.End;
+                        }
+                        start = start.GetNextContextPosition(LogicalDirection.Forward);
+                    }
+
+                    // rendering preview window
+                    string @fixed = range.Text.Replace("&", "&amp;").Replace("<", "&lt;");
+                    var xaml = """
                     <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     Padding="2" Margin="5" FontSize="10" TextWrapping="Wrap" xml:space="preserve">
                     """ + @fixed.ToXaml() + "</TextBlock>";
-            PreviewWindow.Content = XamlReader.Parse(xaml) as TextBlock;
-
+                    PreviewWindow.Content = XamlReader.Parse(xaml);
+                    previewAndHighlightTagsTimer.Stop();
+                };
+                previewAndHighlightTagsTimer.Start();
+            }
 
             // after everything is done return event to our RichTextBox
             MessageRichTextBox.TextChanged += MessageRichTextBox_TextChanged;
+        }
+
+        private void MessageRichTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            RichTextBox rtb = (RichTextBox)sender;
+            TextRange tr = new TextRange(rtb.Document.ContentStart, rtb.Document.ContentEnd);
+            string text = tr.Text.Replace("\r", "").Replace("\n", "");
+            if (text.Length >= Bot.MaxTextLength)
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void MessageRichTextBox_Pasting(object sender, DataObjectPastingEventArgs e)
+        {
+            if (e.FormatToApply == "Bitmap")
+            {
+                e.CancelCommand();
+            }
+            else
+            {
+                RichTextBox rtb = (RichTextBox)sender;
+                TextRange tr = new TextRange(rtb.Document.ContentStart, rtb.Document.ContentEnd);
+                string text = tr.Text.Replace("\r", "").Replace("\n", "");
+                if (text.Length == Bot.MaxTextLength)
+                {
+                    e.CancelCommand();
+                }
+                else
+                {
+                    string pasteText = (string)e.DataObject.GetData("UnicodeText");
+                    string fulltext = text + pasteText.Replace("\r", "").Replace("\n", "");
+                    if (fulltext.Length > Bot.MaxTextLength)
+                    {
+                        int lengthToCap = fulltext.Length - Bot.MaxTextLength;
+                        DataObject d = new DataObject();
+                        d.SetData(DataFormats.Text, pasteText[..^lengthToCap]);
+                        e.DataObject = d;
+                    }
+                }
+            }
         }
 
         private void FormattingCmd_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -285,14 +365,6 @@ namespace DiaryBot
             }
         }
 
-        private void MessageRichTextBox_Pasting(object sender, DataObjectPastingEventArgs e)
-        {
-            if (e.FormatToApply == "Bitmap")
-            {
-                e.CancelCommand();
-            }
-        }
-
         private void UpdateConfigButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(NameTextBox.Text) ||
@@ -337,16 +409,16 @@ namespace DiaryBot
         {
             if (DeleteConfigButton.Content.ToString() == "Delete")
             {
-                timer = new();
-                timer.Interval = TimeSpan.FromSeconds(3);
-                timer.Tick += TurnBackToNormalDeleteConfigButton;
+                removeConfigTimer = new();
+                removeConfigTimer.Interval = TimeSpan.FromSeconds(3);
+                removeConfigTimer.Tick += TurnBackToNormalDeleteConfigButton;
                 DeleteConfigButton.Content = "Sure?";
                 DeleteConfigButton.Foreground = Brushes.Red;
-                timer.Start();
+                removeConfigTimer.Start();
             }
             else
             {
-                if (timer != null && timer.IsEnabled)
+                if (removeConfigTimer != null && removeConfigTimer.IsEnabled)
                 {
                     TurnBackToNormalDeleteConfigButton();
                     // Delete
@@ -358,10 +430,11 @@ namespace DiaryBot
 
         private void TurnBackToNormalDeleteConfigButton(object? sender = null, EventArgs? e = null)
         {
-            timer.Stop();
+            removeConfigTimer.Stop();
             DeleteConfigButton.Content = "Delete";
             DeleteConfigButton.Foreground = Brushes.Black;
-            timer = null;
+            removeConfigTimer = null;
         }
+
     }
 }

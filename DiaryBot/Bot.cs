@@ -7,6 +7,8 @@ namespace DiaryBot
 {
     internal class Bot
     {
+        public const int MaxTextLength = 4096;
+
         private static Bot? _instance;
 
         public static Bot Instance

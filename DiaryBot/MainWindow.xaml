@@ -23,7 +23,8 @@
                              VerticalScrollBarVisibility="Auto"
                              Padding="5,7"
                              TextChanged="MessageRichTextBox_TextChanged"
-                             Loaded="MessageRichTextBox_Loaded">
+                             Loaded="MessageRichTextBox_Loaded"
+                             PreviewTextInput="MessageRichTextBox_PreviewTextInput">
                         <RichTextBox.CommandBindings>
                         <CommandBinding Command="EditingCommands.ToggleBold"
                                         Executed="SetBoldCmd_Executed"
@@ -68,6 +69,7 @@
                             <Setter Property="Margin" Value="0"/>
                         </Style>
                     </RichTextBox.Resources>
+                    <FlowDocument/>
                 </RichTextBox>
                 <TextBlock Name="ErrorTextBlock"
                            HorizontalAlignment="Stretch"
