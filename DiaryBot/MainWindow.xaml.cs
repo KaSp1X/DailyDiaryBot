@@ -13,7 +13,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace DiaryBot
 {
@@ -23,6 +22,7 @@ namespace DiaryBot
     public partial class MainWindow : Window
     {
         private System.Windows.Threading.DispatcherTimer removeConfigTimer;
+        private System.Windows.Threading.DispatcherTimer removePresetTimer;
         private System.Windows.Threading.DispatcherTimer previewAndHighlightTagsTimer;
 
         public MainWindow()
@@ -108,6 +108,43 @@ namespace DiaryBot
                 }
             }
         }
+        
+        private void UpdatePresetsPanel()
+        {
+            PresetsStackPanel.Children.Clear();
+            for (int i = 0; i < Presets.Instance.PresetsList.Count; i++)
+            {
+                string name = Presets.Instance.PresetsList[i].Name.Replace("&", "&amp;").Replace("<", "&lt;");
+                string text = Presets.Instance.PresetsList[i].Text.Replace("&", "&amp;").Replace("<", "&lt;");
+
+                var xaml = $"""
+                    <Button xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                            Name="Preset_{i}"
+                            xml:space="preserve"
+                            Height="75"
+                            Padding="5"
+                            VerticalContentAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch">
+                        <StackPanel>
+                            <TextBlock FontStyle="Italic" FontWeight="Medium">{name}</TextBlock>
+                            <TextBlock>{text.ToXaml()}</TextBlock>
+                        </StackPanel>
+                    </Button>
+                    """;
+                var button = XamlReader.Parse(xaml) as Button;
+                if (button != null)
+                {
+                    button.Click += PresetButton_Click;
+                    if (Presets.Instance.PresetsList[i].Equals(Presets.Instance.SelectedPreset))
+                    {
+                        button.Background = Brushes.LightGoldenrodYellow;
+                        NamePresetTextBox.Text = Presets.Instance.SelectedPreset.Name;
+                        new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text = Presets.Instance.SelectedPreset.Text;
+                    }
+                    PresetsStackPanel.Children.Add(button);
+                }
+            }
+        }
 
         private void ProfileButton_Click(object sender, RoutedEventArgs e)
         {
@@ -134,6 +171,27 @@ namespace DiaryBot
                         if (string.IsNullOrEmpty(replyMessageId))
                             replyMessageId = "Empty";
                         ReplyMessageIdTextBox.Text = replyMessageId;
+                    }
+                }
+            }
+        }
+        
+        private void PresetButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (UIElement obj in PresetsStackPanel.Children)
+            {
+                Button button = obj as Button;
+                if (button != sender)
+                    button.Background = Brushes.LightGray;
+                else
+                {
+                    button.Background = Brushes.LightGoldenrodYellow;
+                    int.TryParse(button.Name.Split('_')[1], out int index);
+                    if (index >= 0 && index < Presets.Instance.PresetsList.Count)
+                    {
+                        Presets.Instance.SelectedPreset = Presets.Instance.PresetsList[index];
+                        NamePresetTextBox.Text = Presets.Instance.SelectedPreset.Name;
+                        new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text = Presets.Instance.SelectedPreset.Text;
                     }
                 }
             }
@@ -184,14 +242,27 @@ namespace DiaryBot
             {
                 UpdateRecentGrid();
             }
-            else if (SettingsTab.IsSelected)
+            else
+            {
+                ClearRecentTab();
+            }
+
+            if (SettingsTab.IsSelected)
             {
                 UpdateProfilesPanel();
             }
             else
             {
                 ClearConfigsTab();
-                ClearRecentTab();
+            }
+            
+            if (PresetsTab.IsSelected)
+            {
+                UpdatePresetsPanel();
+            }
+            else
+            {
+                ClearPresetsTab();
             }
         }
 
@@ -204,6 +275,17 @@ namespace DiaryBot
             TokenTextBox.Clear();
             ChatIdTextBox.Clear();
             ReplyMessageIdTextBox.Clear();
+        }
+
+        private void ClearPresetsTab()
+        {
+            PresetsStackPanel.Children.Clear();
+            NamePresetTextBox.Clear();
+            _ = new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd)
+            {
+                Text = string.Empty
+            };
+            Presets.Instance.SelectedPreset = new(string.Empty, string.Empty);
         }
 
         private void MessageRichTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -436,5 +518,63 @@ namespace DiaryBot
             removeConfigTimer = null;
         }
 
+        private void UpdatePresetButton_Click(object sender, RoutedEventArgs e)
+        {
+            string text = new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text;
+            if (string.IsNullOrWhiteSpace(NamePresetTextBox.Text) ||
+                string.IsNullOrWhiteSpace(text) ||
+                Presets.Instance.PresetsList.Any(x => x.Name == NamePresetTextBox.Text))
+                return;
+
+            // Update
+            var newPreset = new Presets.Preset(NamePresetTextBox.Text, text);
+            Presets.UpdatePreset(Presets.Instance.SelectedPreset, newPreset);
+            UpdatePresetsPanel();
+        }
+
+        private void AddPresetButton_Click(object sender, RoutedEventArgs e)
+        {
+            string text = new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text;
+            if (string.IsNullOrWhiteSpace(NamePresetTextBox.Text) ||
+                string.IsNullOrWhiteSpace(text) ||
+                Presets.Instance.PresetsList.Any(x => x.Name == NamePresetTextBox.Text))
+                return;
+
+            //// Add
+            var newPreset = new Presets.Preset(NamePresetTextBox.Text, text);
+            Presets.AddPreset(newPreset);
+            UpdatePresetsPanel();
+        }
+
+        private void DeletePresetButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DeletePresetButton.Content.ToString() == "Delete")
+            {
+                removePresetTimer = new();
+                removePresetTimer.Interval = TimeSpan.FromSeconds(3);
+                removePresetTimer.Tick += TurnBackToNormalDeletePresetButton;
+                DeletePresetButton.Content = "Sure?";
+                DeletePresetButton.Foreground = Brushes.Red;
+                removePresetTimer.Start();
+            }
+            else
+            {
+                if (removePresetTimer != null && removePresetTimer.IsEnabled)
+                {
+                    TurnBackToNormalDeletePresetButton();
+                    // Delete
+                    Presets.RemovePreset(Presets.Instance.SelectedPreset);
+                    UpdatePresetsPanel();
+                }
+            }
+        }
+
+        private void TurnBackToNormalDeletePresetButton(object? sender = null, EventArgs? e = null)
+        {
+            removePresetTimer.Stop();
+            DeletePresetButton.Content = "Delete";
+            DeletePresetButton.Foreground = Brushes.Black;
+            removePresetTimer = null;
+        }
     }
 }
