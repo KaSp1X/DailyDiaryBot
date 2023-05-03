@@ -135,6 +135,7 @@ namespace DiaryBot
                 if (button != null)
                 {
                     button.Click += PresetButton_Click;
+                    button.MouseDoubleClick += PresetButton_MouseDoubleClick;
                     if (Presets.Instance.PresetsList[i].Equals(Presets.Instance.SelectedPreset))
                     {
                         button.Background = Brushes.LightGoldenrodYellow;
@@ -144,6 +145,13 @@ namespace DiaryBot
                     PresetsStackPanel.Children.Add(button);
                 }
             }
+        }
+
+        private void PresetButton_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            MessageRichTextBox.Selection.Text = Presets.Instance.SelectedPreset.Text.TrimEnd('\n').TrimEnd('\r');
+            MessageTab.IsSelected = true;
+            RichTextBox_TextChanged(MessageRichTextBox, null);
         }
 
         private void ProfileButton_Click(object sender, RoutedEventArgs e)
@@ -288,12 +296,13 @@ namespace DiaryBot
             Presets.Instance.SelectedPreset = new(string.Empty, string.Empty);
         }
 
-        private void MessageRichTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void RichTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            RichTextBox richTextBox = (RichTextBox)sender;
             // to prevent overflow, we temporary remove event from our RichTextBox
-            MessageRichTextBox.TextChanged -= MessageRichTextBox_TextChanged;
+            richTextBox.TextChanged -= RichTextBox_TextChanged;
 
-            var range = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd);
+            var range = new TextRange(richTextBox.Document.ContentStart, richTextBox.Document.ContentEnd);
 
             // a timer to make less load on the system when editing large text
             if (previewAndHighlightTagsTimer != null)
@@ -328,22 +337,24 @@ namespace DiaryBot
                     }
 
                     // rendering preview window
+                    ScrollViewer scrollViewer = richTextBox.Name == "TextPresetRichTextBox" ? PreviewPresetWindow : PreviewWindow;
+
                     string @fixed = range.Text.Replace("&", "&amp;").Replace("<", "&lt;");
                     var xaml = """
                     <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     Padding="2" Margin="5" FontSize="10" TextWrapping="Wrap" xml:space="preserve">
                     """ + @fixed.ToXaml() + "</TextBlock>";
-                    PreviewWindow.Content = XamlReader.Parse(xaml);
+                    scrollViewer.Content = XamlReader.Parse(xaml);
                     previewAndHighlightTagsTimer.Stop();
                 };
                 previewAndHighlightTagsTimer.Start();
             }
 
             // after everything is done return event to our RichTextBox
-            MessageRichTextBox.TextChanged += MessageRichTextBox_TextChanged;
+            richTextBox.TextChanged += RichTextBox_TextChanged;
         }
 
-        private void MessageRichTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        private void RichTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             RichTextBox rtb = (RichTextBox)sender;
             TextRange tr = new TextRange(rtb.Document.ContentStart, rtb.Document.ContentEnd);
@@ -354,7 +365,7 @@ namespace DiaryBot
             }
         }
 
-        private void MessageRichTextBox_Pasting(object sender, DataObjectPastingEventArgs e)
+        private void RichTextBox_Pasting(object sender, DataObjectPastingEventArgs e)
         {
             if (e.FormatToApply == "Bitmap")
             {
@@ -386,8 +397,9 @@ namespace DiaryBot
 
         private void FormattingCmd_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
+            RichTextBox richTextBox = (RichTextBox)sender;
             e.Handled = true;
-            if (MessageRichTextBox.Selection.Text.Length > 0)
+            if (richTextBox.Selection.Text.Length > 0)
                 e.CanExecute = true;
             else
                 e.CanExecute = false;
@@ -399,29 +411,31 @@ namespace DiaryBot
             e.Handled = true;
         }
 
-        private void SetBoldCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Bold);
+        private void SetBoldCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(sender, FormattingTag.Bold);
 
-        private void SetItalicCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Italic);
+        private void SetItalicCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(sender, FormattingTag.Italic);
 
-        private void SetUnderlineCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Underline);
+        private void SetUnderlineCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(sender, FormattingTag.Underline);
 
-        private void SetStrikethroughCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Strikethrough);
+        private void SetStrikethroughCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(sender, FormattingTag.Strikethrough);
 
-        private void SetSpoilerCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(FormattingTag.Spoiler);
-
-        private void FormatText(string tag)
+        private void SetSpoilerCmd_Executed(object sender, ExecutedRoutedEventArgs e) => FormatText(sender, FormattingTag.Spoiler);
+        
+        private void FormatText(object sender, string tag)
         {
-            var selectedTextRange = new TextRange(MessageRichTextBox.Selection.Start, MessageRichTextBox.Selection.End);
+            RichTextBox rtb = (RichTextBox)sender;
+            var selectedTextRange = new TextRange(rtb.Selection.Start, rtb.Selection.End);
 
             string formatedMessage = FormattingTag.Insert(selectedTextRange, tag);
             if (!string.IsNullOrWhiteSpace(formatedMessage))
             {
-                MessageRichTextBox.Selection.Text = formatedMessage;
+                rtb.Selection.Text = formatedMessage;
             }
         }
 
-        private void MessageRichTextBox_Loaded(object sender, RoutedEventArgs e)
+        private void RichTextBox_Loaded(object sender, RoutedEventArgs e)
         {
+            RichTextBox richTextBox = (RichTextBox)sender;
             List<RoutedUICommand> commands = new()
             {
                 EditingCommands.AlignCenter,
@@ -443,7 +457,7 @@ namespace DiaryBot
 
             foreach (RoutedUICommand command in commands)
             {
-                MessageRichTextBox.CommandBindings.Add(new CommandBinding(command, null, EdittingCmd_CantExecute));
+                richTextBox.CommandBindings.Add(new CommandBinding(command, null, EdittingCmd_CantExecute));
             }
         }
 
@@ -523,7 +537,7 @@ namespace DiaryBot
             string text = new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text;
             if (string.IsNullOrWhiteSpace(NamePresetTextBox.Text) ||
                 string.IsNullOrWhiteSpace(text) ||
-                Presets.Instance.PresetsList.Any(x => x.Name == NamePresetTextBox.Text))
+                Presets.Instance.PresetsList.Any(x => x.Name == NamePresetTextBox.Text && NamePresetTextBox.Text != Presets.Instance.SelectedPreset.Name))
                 return;
 
             // Update
