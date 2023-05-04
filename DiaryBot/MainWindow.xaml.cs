@@ -40,6 +40,7 @@ namespace DiaryBot
                     Margin = new Thickness(5),
                     Name = "RecentMessage" + i,
                     Background = Brushes.LightGray,
+                    Style = null,
                     Padding = new(5.0),
                     HorizontalContentAlignment = HorizontalAlignment.Stretch,
                     VerticalContentAlignment = VerticalAlignment.Stretch
