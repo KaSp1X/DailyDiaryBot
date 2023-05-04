@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:DiaryBot" xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         mc:Ignorable="d"
         Name="DiaryMainWindow"
-        Title="DairyBot" Height="450" Width="600"
+        Title="DiaryBot" Height="450" Width="600"
         MinHeight="350" MinWidth="400">
     <Window.Resources>
         <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">15</sys:Double>
@@ -15,43 +15,17 @@
                 <Setter Property="Margin" Value="0"/>
             </Style.Setters>
         </Style>
-    </Window.Resources>
-    <TabControl x:Name="MainWindowTabControl"
-                SelectionChanged="MainWindowTabControl_SelectionChanged">
-        <TabItem Name="MessageTab"
-                 Header="Message">
-            <Grid x:Name="Main"
-                      Margin="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="62*"/>
-                    <ColumnDefinition Width="38*"/>
-                </Grid.ColumnDefinitions>
-                <RichTextBox Name="MessageRichTextBox"
-                             AcceptsReturn="True"
-                             DataObject.Pasting="RichTextBox_Pasting"
-                             VerticalScrollBarVisibility="Auto"
-                             Padding="5,7"
-                             TextChanged="RichTextBox_TextChanged"
-                             Loaded="RichTextBox_Loaded"
-                             PreviewTextInput="RichTextBox_PreviewTextInput">
-                        <RichTextBox.CommandBindings>
-                        <CommandBinding Command="EditingCommands.ToggleBold"
-                                        Executed="SetBoldCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="EditingCommands.ToggleItalic"
-                                        Executed="SetItalicCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="EditingCommands.ToggleUnderline"
-                                        Executed="SetUnderlineCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
-                                        Executed="SetStrikethroughCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
-                                        Executed="SetSpoilerCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                    </RichTextBox.CommandBindings>
-                    <RichTextBox.ContextMenu>
+        <Style TargetType="RichTextBox">
+            <Style.Setters>
+                <Setter Property="Padding" Value="5,7"/>
+                <Setter Property="AcceptsReturn" Value="True"/>
+                <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+                <EventSetter Event="TextChanged" Handler="RichTextBox_TextChanged"/>
+                <EventSetter Event="Loaded" Handler="RichTextBox_Loaded"/>
+                <EventSetter Event="DataObject.Pasting" Handler="RichTextBox_Pasting"/>
+                <EventSetter Event="PreviewTextInput" Handler="RichTextBox_PreviewTextInput"/>
+                <Setter Property="ContextMenu">
+                    <Setter.Value>
                         <ContextMenu>
                             <MenuItem Command="ApplicationCommands.Undo"/>
                             <MenuItem Command="ApplicationCommands.Redo"/>
@@ -71,44 +45,55 @@
                             <Separator/>
                             <MenuItem Command="ApplicationCommands.SelectAll"/>
                         </ContextMenu>
-                    </RichTextBox.ContextMenu>
-                    <FlowDocument/>
-                </RichTextBox>
-                <TextBlock Name="ErrorTextBlock"
-                           HorizontalAlignment="Stretch"
-                           TextWrapping="Wrap"
-                           Visibility="Hidden"
-                           TextAlignment="Center"
-                           FontWeight="Bold"
-                           VerticalAlignment="Bottom"
-                           Margin="3,0,21,5"
-                           Text ="{Binding Source={x:Static local:Error.Instance}, Path=Message, NotifyOnTargetUpdated=True}">
-                    <TextBlock.Triggers>
-                        <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <ObjectAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="ErrorTextBlock" Storyboard.TargetProperty="(UIElement.Visibility)">
-                                        <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Visible}"/>
-                                        <DiscreteObjectKeyFrame KeyTime="0:0:8" Value="{x:Static Visibility.Hidden}"/>
-                                    </ObjectAnimationUsingKeyFrames>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1.0"/>
-                                    <DoubleAnimation Duration="0:0:3" BeginTime="0:0:5" 
-                                                     Storyboard.TargetProperty="Opacity" 
-                                                     From="1.0" To="0.0"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </TextBlock.Triggers>
-                    <TextBlock.Foreground>
-                        <Binding Source="{x:Static local:Error.Instance}" Path="Message">
-                            <Binding.Converter>
-                                <local:ErrorMessageForegroundConverter/>
-                            </Binding.Converter>
-                        </Binding>
-                    </TextBlock.Foreground>
-                </TextBlock>
-                <Grid Name="ControlGrid"
-                      Grid.Column="1"
+                    </Setter.Value>
+                </Setter>
+            </Style.Setters>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="30"/>
+        </Style>
+        <Style TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Vertical"/>
+        </Style>
+        <Style TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+        </Style>
+        <ControlTemplate TargetType="ScrollViewer" 
+                         x:Key="BorderScrollViewer">
+            <Border BorderThickness="1"
+                    BorderBrush="DarkGray">
+                <ContentControl Content="{TemplateBinding Content}"/>
+            </Border>
+        </ControlTemplate>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="EditingCommands.ToggleBold"
+                        Executed="SetBoldCmd_Executed"
+                        CanExecute="FormattingCmd_CanExecute"/>
+        <CommandBinding Command="EditingCommands.ToggleItalic"
+                        Executed="SetItalicCmd_Executed"
+                        CanExecute="FormattingCmd_CanExecute"/>
+        <CommandBinding Command="EditingCommands.ToggleUnderline"
+                        Executed="SetUnderlineCmd_Executed"
+                        CanExecute="FormattingCmd_CanExecute"/>
+        <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
+                        Executed="SetStrikethroughCmd_Executed"
+                        CanExecute="FormattingCmd_CanExecute"/>
+        <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
+                        Executed="SetSpoilerCmd_Executed"
+                        CanExecute="FormattingCmd_CanExecute"/>
+    </Window.CommandBindings>
+    <TabControl SelectionChanged="MainWindowTabControl_SelectionChanged">
+        <TabItem Name="MessageTab"
+                 Header="Message">
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="62*"/>
+                    <ColumnDefinition Width="38*"/>
+                </Grid.ColumnDefinitions>
+                <RichTextBox Name="MessageRichTextBox"/>
+                <Grid Grid.Column="1"
                       Margin="10,0,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="40"></RowDefinition>
@@ -119,25 +104,30 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Button Name="SendMessageButton" 
-                    Click="SendMessageButton_Click" 
-                    Grid.Row="0" Grid.Column="0" Margin="0,0,5,5" Height="30" 
-                    VerticalAlignment="Top">Send</Button>
-                    <Button Name="EditLastMessageButton" 
-                    Click="EditLastMessageButton_Click" 
-                    Grid.Row="0" Grid.Column="1" Margin="5,0,0,5" Height="30" 
-                    VerticalAlignment="Top">Edit</Button>
-                    <Border BorderThickness="1"
-                            BorderBrush="DarkGray"
-                            Grid.Row="1" Grid.ColumnSpan="2">
-                        <ScrollViewer x:Name="PreviewWindow" VerticalScrollBarVisibility="Auto"/>
-                    </Border>
+                            Click="SendMessageButton_Click" 
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="0,0,5,5"
+                            VerticalAlignment="Top"
+                            Content="Send"/>
+                    <Button Name="EditLastMessageButton"
+                            Click="EditLastMessageButton_Click"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Margin="5,0,0,5"
+                            VerticalAlignment="Top"
+                            Content="Edit"/>
+                    <ScrollViewer x:Name="PreviewWindow"
+                                  Template="{StaticResource BorderScrollViewer}"
+                                  Grid.Row="1"
+                                  Grid.ColumnSpan="2"/>
                 </Grid>
             </Grid>
         </TabItem>
-        <TabItem Header="Recent"
-                     Name="RecentTab">
+        <TabItem Name="RecentTab"
+                 Header="Recent">
             <Grid x:Name="RecentGrid"
-                      Margin="5">
+                  Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
@@ -148,10 +138,9 @@
                 </Grid.ColumnDefinitions>
             </Grid>
         </TabItem>
-        <TabItem Header="Presets"
-                  Name="PresetsTab">
-            <Grid x:Name="PresetsGrid"
-                      Margin="10">
+        <TabItem Name="PresetsTab"
+                 Header="Presets">
+            <Grid Margin="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="170"/>
@@ -182,59 +171,13 @@
                            Grid.Row="2"
                            Padding="5,10,0,0"/>
                     <RichTextBox Name="TextPresetRichTextBox"
-                                 Grid.Row="3"
-                                 Padding="5,7"
-                                 AcceptsReturn="True"
-                                 TextChanged="RichTextBox_TextChanged"
-                                 Loaded="RichTextBox_Loaded"
-                                 PreviewTextInput="RichTextBox_PreviewTextInput">
-                        <RichTextBox.CommandBindings>
-                            <CommandBinding Command="EditingCommands.ToggleBold"
-                                        Executed="SetBoldCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                            <CommandBinding Command="EditingCommands.ToggleItalic"
-                                        Executed="SetItalicCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                            <CommandBinding Command="EditingCommands.ToggleUnderline"
-                                        Executed="SetUnderlineCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                            <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
-                                        Executed="SetStrikethroughCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                            <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
-                                        Executed="SetSpoilerCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        </RichTextBox.CommandBindings>
-                        <RichTextBox.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Command="ApplicationCommands.Undo"/>
-                                <MenuItem Command="ApplicationCommands.Redo"/>
-                                <Separator/>
-                                <MenuItem Command="ApplicationCommands.Copy"/>
-                                <MenuItem Command="ApplicationCommands.Cut"/>
-                                <MenuItem Command="ApplicationCommands.Paste"/>
-                                <MenuItem Command="ApplicationCommands.Delete"/>
-                                <Separator/>
-                                <MenuItem Header="_Formatting">
-                                    <MenuItem Command="EditingCommands.ToggleBold"/>
-                                    <MenuItem Command="EditingCommands.ToggleItalic"/>
-                                    <MenuItem Command="EditingCommands.ToggleUnderline"/>
-                                    <MenuItem Command="local:FormattingCommand.SetStrikethroughTextCmd"/>
-                                    <MenuItem Command="local:FormattingCommand.SetSpoilerTextCmd"/>
-                                </MenuItem>
-                                <Separator/>
-                                <MenuItem Command="ApplicationCommands.SelectAll"/>
-                            </ContextMenu>
-                        </RichTextBox.ContextMenu>
-                    </RichTextBox>
+                                 Grid.Row="3"/>
                     <Label Content="Preview"
                            Grid.Row="4"
                            Padding="5,10,0,0"/>
-                    <Border BorderThickness="1"
-                            BorderBrush="DarkGray"
-                            Grid.Row="5">
-                        <ScrollViewer x:Name="PreviewPresetWindow" VerticalScrollBarVisibility="Auto"/>
-                    </Border>
+                    <ScrollViewer x:Name="PreviewPresetWindow"
+                                  Template="{StaticResource BorderScrollViewer}"
+                                  Grid.Row="5"/>
                 </Grid>
                 <Grid Grid.Row="0"
                       Grid.Column="1"
@@ -245,23 +188,11 @@
                     </Grid.RowDefinitions>
                     <Label Content="Presets"
                            Grid.Row="0"
-                           Padding="5,0"></Label>
-                    <Border BorderThickness="1"
-                            BorderBrush="DarkGray"
-                            Grid.Row="1">
-                        <ScrollViewer x:Name="PresetsScrollViewer"
-                                      HorizontalScrollBarVisibility="Hidden"
-                                      VerticalScrollBarVisibility="Auto"
-                                      VerticalAlignment="Top"
-                                      Grid.Row="1">
-                            <ScrollViewer.Resources>
-                                <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">15</sys:Double>
-                            </ScrollViewer.Resources>
-                            <StackPanel x:Name="PresetsStackPanel"
-                                        Orientation="Vertical">
-                            </StackPanel>
-                        </ScrollViewer>
-                    </Border>
+                           Padding="5,0"/>
+                    <ScrollViewer Template="{StaticResource BorderScrollViewer}" 
+                                  Grid.Row="1">
+                        <StackPanel x:Name="PresetsStackPanel"/>
+                    </ScrollViewer>
                 </Grid>
                 <Grid Grid.Row="1"
                       Grid.Column="1">
@@ -278,29 +209,25 @@
                             Content="Update"
                             Grid.ColumnSpan="2"
                             Grid.Row="0"
-                            Margin="0,0,0,5"
-                            Height="30"/>
+                            Margin="0,0,0,5"/>
                     <Button x:Name="AddPresetButton"
                             Click="AddPresetButton_Click"
                             Content="Add"
                             Grid.Column="0"
                             Grid.Row="1"
-                            Margin="0,5,5,0"
-                            Height="30"/>
+                            Margin="0,5,5,0"/>
                     <Button x:Name="DeletePresetButton"
                             Click="DeletePresetButton_Click"
                             Content="Delete"
                             Grid.Column="1"
                             Grid.Row="1"
-                            Margin="5,5,0,0"
-                            Height="30"/>
+                            Margin="5,5,0,0"/>
                 </Grid>
             </Grid>
         </TabItem>
-        <TabItem Header="Settings"
-                     Name="SettingsTab">
-            <Grid x:Name="SettingsGrid"
-                      Margin="10">
+        <TabItem Name="SettingsTab"
+                 Header="Settings">
+            <Grid Margin="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="170"/>
@@ -309,9 +236,8 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="70"/>
                 </Grid.RowDefinitions>
-                <Grid x:Name="FormGrid"
+                <Grid Grid.Column="0"
                       Grid.RowSpan="2"
-                      Grid.Column="0"
                       Margin="0,0,10,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="20"></RowDefinition>
@@ -330,7 +256,6 @@
                              Grid.Row="1"
                              Padding="5"
                              TextWrapping="Wrap"/>
-
                     <Label Content="Token"
                            Grid.Row="2"
                            Padding="5,10,0,0"/>
@@ -338,14 +263,12 @@
                              Grid.Row="3"
                              Padding="5"
                              TextWrapping="Wrap"/>
-
                     <Label Content="ChatId" 
                            Grid.Row="4" 
                            Padding="5,10,0,0"/>
                     <TextBox Name="ChatIdTextBox" 
                              Padding="5"
                              Grid.Row="5"/>
-
                     <Label Content="ReplyMessageId" 
                            Grid.Row="6"
                            Padding="5,10,0,0"/>
@@ -353,8 +276,7 @@
                              Padding="5"
                              Grid.Row="7"/>
                 </Grid>
-                <Grid x:Name="ProfilesGrid"
-                      Grid.Row="0"
+                <Grid Grid.Row="0"
                       Grid.Column="1"
                       Margin="0,0,0,10">
                     <Grid.RowDefinitions>
@@ -363,23 +285,11 @@
                     </Grid.RowDefinitions>
                     <Label Content="Profiles"
                            Grid.Row="0"
-                           Padding="5,0"></Label>
-                    <Border BorderThickness="1"
-                            BorderBrush="DarkGray"
-                            Grid.Row="1">
-                        <ScrollViewer x:Name="ProfilesScrollViewer"
-                                      HorizontalScrollBarVisibility="Hidden"
-                                      VerticalScrollBarVisibility="Auto"
-                                      VerticalAlignment="Top"
-                                      Grid.Row="1">
-                            <ScrollViewer.Resources>
-                                <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">15</sys:Double>
-                            </ScrollViewer.Resources>
-                            <StackPanel x:Name="ProfilesStackPanel"
-                                        Orientation="Vertical">
-                            </StackPanel>
-                        </ScrollViewer>
-                    </Border>
+                           Padding="5,0"/>
+                    <ScrollViewer Template="{StaticResource BorderScrollViewer}"
+                                  Grid.Row="1">
+                        <StackPanel x:Name="ProfilesStackPanel"/>
+                    </ScrollViewer>
                 </Grid>
                 <Grid Grid.Row="1"
                       Grid.Column="1">
@@ -396,22 +306,19 @@
                             Content="Update"
                             Grid.ColumnSpan="2"
                             Grid.Row="0"
-                            Margin="0,0,0,5"
-                            Height="30"/>
+                            Margin="0,0,0,5"/>
                     <Button x:Name="AddConfigButton"
                             Click="AddConfigButton_Click"
                             Content="Add"
                             Grid.Column="0"
                             Grid.Row="1"
-                            Margin="0,5,5,0"
-                            Height="30"/>
+                            Margin="0,5,5,0"/>
                     <Button x:Name="DeleteConfigButton"
                             Click="DeleteConfigButton_Click"
                             Content="Delete"
                             Grid.Column="1"
                             Grid.Row="1"
-                            Margin="5,5,0,0"
-                            Height="30"/>
+                            Margin="5,5,0,0"/>
                 </Grid>
             </Grid>
         </TabItem>
