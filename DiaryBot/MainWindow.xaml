@@ -55,17 +55,37 @@
         <Style TargetType="StackPanel">
             <Setter Property="Orientation" Value="Vertical"/>
         </Style>
-        <Style TargetType="ScrollViewer">
+        <Style TargetType="ScrollViewer"
+               x:Key="BorderScrollViewer">
             <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollViewer">
+                        <Border BorderThickness="1"
+                                BorderBrush="DarkGray">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" 
+                                                        Content="{TemplateBinding ScrollViewer.Content}"
+                                                        VerticalAlignment="Top"
+                                                        CanContentScroll="{TemplateBinding CanContentScroll}"
+                                                        Grid.Column="0"/>
+                                <ScrollBar x:Name="PART_VerticalScrollBar"
+                                           Orientation="Vertical"
+                                           Grid.Column="1"
+                                           Value="{TemplateBinding VerticalOffset}"
+                                           Maximum="{TemplateBinding ScrollableHeight}"
+                                           ViewportSize="{TemplateBinding ViewportHeight}"
+                                           Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
-        <ControlTemplate TargetType="ScrollViewer" 
-                         x:Key="BorderScrollViewer">
-            <Border BorderThickness="1"
-                    BorderBrush="DarkGray">
-                <ContentControl Content="{TemplateBinding Content}"/>
-            </Border>
-        </ControlTemplate>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="EditingCommands.ToggleBold"
@@ -118,7 +138,7 @@
                             VerticalAlignment="Top"
                             Content="Edit"/>
                     <ScrollViewer x:Name="PreviewWindow"
-                                  Template="{StaticResource BorderScrollViewer}"
+                                  Style="{StaticResource BorderScrollViewer}"
                                   Grid.Row="1"
                                   Grid.ColumnSpan="2"/>
                 </Grid>
@@ -176,7 +196,7 @@
                            Grid.Row="4"
                            Padding="5,10,0,0"/>
                     <ScrollViewer x:Name="PreviewPresetWindow"
-                                  Template="{StaticResource BorderScrollViewer}"
+                                  Style="{StaticResource BorderScrollViewer}"
                                   Grid.Row="5"/>
                 </Grid>
                 <Grid Grid.Row="0"
@@ -189,7 +209,7 @@
                     <Label Content="Presets"
                            Grid.Row="0"
                            Padding="5,0"/>
-                    <ScrollViewer Template="{StaticResource BorderScrollViewer}" 
+                    <ScrollViewer Style="{StaticResource BorderScrollViewer}"
                                   Grid.Row="1">
                         <StackPanel x:Name="PresetsStackPanel"/>
                     </ScrollViewer>
@@ -286,7 +306,7 @@
                     <Label Content="Profiles"
                            Grid.Row="0"
                            Padding="5,0"/>
-                    <ScrollViewer Template="{StaticResource BorderScrollViewer}"
+                    <ScrollViewer Style="{StaticResource BorderScrollViewer}"
                                   Grid.Row="1">
                         <StackPanel x:Name="ProfilesStackPanel"/>
                     </ScrollViewer>
