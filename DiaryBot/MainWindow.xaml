@@ -86,122 +86,66 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style TargetType="TextBlock" x:Key="ErrorTextBlock">
+            <Style.Setters>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="Visibility" Value="Hidden"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="20, 2"/>
+                <Setter Property="Text" Value="{Binding Source={x:Static local:Error.Instance}, Path=Message, NotifyOnTargetUpdated=True}"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <Binding Source="{x:Static local:Error.Instance}" Path="Message">
+                            <Binding.Converter>
+                                <local:ErrorMessageForegroundConverter/>
+                            </Binding.Converter>
+                        </Binding>
+                    </Setter.Value>
+                </Setter>
+            </Style.Setters>
+            <Style.Triggers>
+                <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ObjectAnimationUsingKeyFrames BeginTime="00:00:00" 
+                                                           Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="00:00:00" 
+                                                        Value="{x:Static Visibility.Visible}"/>
+                                <DiscreteObjectKeyFrame KeyTime="00:00:08" 
+                                                        Value="{x:Static Visibility.Hidden}"/>
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                             To="1.0"/>
+                            <DoubleAnimation Duration="00:00:03" 
+                                             BeginTime="00:00:05" 
+                                             Storyboard.TargetProperty="Opacity" 
+                                             From="1.0" 
+                                             To="0.0"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
-    <TabControl SelectionChanged="MainWindowTabControl_SelectionChanged">
-        <TabItem Name="MessageTab"
-                 Header="Message">
-            <Grid Margin="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="62*"/>
-                    <ColumnDefinition Width="38*"/>
-                </Grid.ColumnDefinitions>
-                <RichTextBox Name="MessageRichTextBox">
-                    <RichTextBox.CommandBindings>
-                        <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"
-                                        Executed="SetBoldCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="EditingCommands.ToggleBold"
-                                        Executed="SetBoldCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="local:FormattingCommand.SetItalicTextCmd"
-                                        Executed="SetItalicCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="EditingCommands.ToggleItalic"
-                                        Executed="SetItalicCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="local:FormattingCommand.SetUnderlineTextCmd"
-                                        Executed="SetUnderlineCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="EditingCommands.ToggleUnderline"
-                                        Executed="SetUnderlineCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
-                                        Executed="SetStrikethroughCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                        <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
-                                        Executed="SetSpoilerCmd_Executed"
-                                        CanExecute="FormattingCmd_CanExecute"/>
-                    </RichTextBox.CommandBindings>
-                </RichTextBox>
-                <Grid Grid.Column="1"
-                      Margin="10,0,0,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="40"></RowDefinition>
-                        <RowDefinition Height="*"></RowDefinition>
-                    </Grid.RowDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TabControl SelectionChanged="MainWindowTabControl_SelectionChanged"
+                    Grid.Row="0">
+            <TabItem Name="MessageTab"
+                     Header="Message">
+                <Grid Margin="10">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
+                        <ColumnDefinition Width="62*"/>
+                        <ColumnDefinition Width="38*"/>
                     </Grid.ColumnDefinitions>
-                    <Button Name="SendMessageButton" 
-                            Click="SendMessageButton_Click" 
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            Margin="0,0,5,5"
-                            VerticalAlignment="Top"
-                            Content="Send"/>
-                    <Button Name="EditLastMessageButton"
-                            Click="EditLastMessageButton_Click"
-                            Grid.Row="0"
-                            Grid.Column="1"
-                            Margin="5,0,0,5"
-                            VerticalAlignment="Top"
-                            Content="Edit"/>
-                    <ScrollViewer x:Name="PreviewWindow"
-                                  Style="{StaticResource BorderScrollViewer}"
-                                  Grid.Row="1"
-                                  Grid.ColumnSpan="2"/>
-                </Grid>
-            </Grid>
-        </TabItem>
-        <TabItem Name="RecentTab"
-                 Header="Recent">
-            <Grid x:Name="RecentGrid"
-                  Margin="5">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-            </Grid>
-        </TabItem>
-        <TabItem Name="PresetsTab"
-                 Header="Presets">
-            <Grid Margin="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="170"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="70"/>
-                </Grid.RowDefinitions>
-                <Grid Grid.RowSpan="2"
-                      Grid.Column="0"
-                      Margin="0,0,10,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="20"></RowDefinition>
-                        <RowDefinition Height="30"></RowDefinition>
-                        <RowDefinition Height="30"></RowDefinition>
-                        <RowDefinition Height="30*"></RowDefinition>
-                        <RowDefinition Height="30"></RowDefinition>
-                        <RowDefinition Height="30*"></RowDefinition>
-                    </Grid.RowDefinitions>
-                    <Label Content="Name"
-                           Grid.Row="0"
-                           Padding="5,0"/>
-                    <TextBox Name="NamePresetTextBox"
-                             Grid.Row="1"
-                             Padding="5"
-                             TextWrapping="Wrap"/>
-                    <Label Content="Text"
-                           Grid.Row="2"
-                           Padding="5,10,0,0"/>
-                    <RichTextBox Name="TextPresetRichTextBox"
-                                 Grid.Row="3">
+                    <RichTextBox Name="MessageRichTextBox">
                         <RichTextBox.CommandBindings>
                             <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"
                                             Executed="SetBoldCmd_Executed"
@@ -229,155 +173,266 @@
                                             CanExecute="FormattingCmd_CanExecute"/>
                         </RichTextBox.CommandBindings>
                     </RichTextBox>
-                    <Label Content="Preview"
-                           Grid.Row="4"
-                           Padding="5,10,0,0"/>
-                    <ScrollViewer x:Name="PreviewPresetWindow"
-                                  Style="{StaticResource BorderScrollViewer}"
-                                  Grid.Row="5"/>
+                    <Grid Grid.Column="1"
+                          Margin="10,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="40"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Button Name="SendMessageButton" 
+                                Click="SendMessageButton_Click" 
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Margin="0,0,5,5"
+                                VerticalAlignment="Top"
+                                Content="Send"/>
+                        <Button Name="EditLastMessageButton"
+                                Click="EditLastMessageButton_Click"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Margin="5,0,0,5"
+                                VerticalAlignment="Top"
+                                Content="Edit"/>
+                        <ScrollViewer x:Name="PreviewWindow"
+                                      Style="{StaticResource BorderScrollViewer}"
+                                      Grid.Row="1"
+                                      Grid.ColumnSpan="2"/>
+                    </Grid>
                 </Grid>
-                <Grid Grid.Row="0"
-                      Grid.Column="1"
-                      Margin="0,0,0,10">
+            </TabItem>
+            <TabItem Name="RecentTab"
+                     Header="Recent">
+                <Grid x:Name="RecentGrid"
+                      Margin="5">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="20"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition/>
+                        <RowDefinition/>
                     </Grid.RowDefinitions>
-                    <Label Content="Presets"
-                           Grid.Row="0"
-                           Padding="5,0"/>
-                    <ScrollViewer Style="{StaticResource BorderScrollViewer}"
-                                  Grid.Row="1">
-                        <StackPanel x:Name="PresetsStackPanel"/>
-                    </ScrollViewer>
-                </Grid>
-                <Grid Grid.Row="1"
-                      Grid.Column="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <Button x:Name="UpdatePresetButton"
-                            Click="UpdatePresetButton_Click"
-                            Content="Update"
-                            Grid.ColumnSpan="2"
-                            Grid.Row="0"
-                            Margin="0,0,0,5"/>
-                    <Button x:Name="AddPresetButton"
-                            Click="AddPresetButton_Click"
-                            Content="Add"
-                            Grid.Column="0"
-                            Grid.Row="1"
-                            Margin="0,5,5,0"/>
-                    <Button x:Name="DeletePresetButton"
-                            Click="DeletePresetButton_Click"
-                            Content="Delete"
-                            Grid.Column="1"
-                            Grid.Row="1"
-                            Margin="5,5,0,0"/>
                 </Grid>
-            </Grid>
-        </TabItem>
-        <TabItem Name="SettingsTab"
-                 Header="Settings">
-            <Grid Margin="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="170"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="70"/>
-                </Grid.RowDefinitions>
-                <Grid Grid.Column="0"
-                      Grid.RowSpan="2"
+            </TabItem>
+            <TabItem Name="PresetsTab"
+                     Header="Presets">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="170"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="70"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.RowSpan="2"
+                      Grid.Column="0"
                       Margin="0,0,10,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="20"></RowDefinition>
-                        <RowDefinition Height="15*"></RowDefinition>
-                        <RowDefinition Height="30"></RowDefinition>
-                        <RowDefinition Height="30*"></RowDefinition>
-                        <RowDefinition Height="30"></RowDefinition>
-                        <RowDefinition Height="15*"></RowDefinition>
-                        <RowDefinition Height="30"></RowDefinition>
-                        <RowDefinition Height="15*"></RowDefinition>
-                    </Grid.RowDefinitions>
-                    <Label Content="Name"
-                           Grid.Row="0"
-                           Padding="5,0"/>
-                    <TextBox Name="NameTextBox" 
-                             Grid.Row="1"
-                             Padding="5"
-                             TextWrapping="Wrap"/>
-                    <Label Content="Token"
-                           Grid.Row="2"
-                           Padding="5,10,0,0"/>
-                    <TextBox Name="TokenTextBox"
-                             Grid.Row="3"
-                             Padding="5"
-                             TextWrapping="Wrap"/>
-                    <Label Content="ChatId" 
-                           Grid.Row="4" 
-                           Padding="5,10,0,0"/>
-                    <TextBox Name="ChatIdTextBox" 
-                             Padding="5"
-                             Grid.Row="5"/>
-                    <Label Content="ReplyMessageId" 
-                           Grid.Row="6"
-                           Padding="5,10,0,0"/>
-                    <TextBox Name="ReplyMessageIdTextBox" 
-                             Padding="5"
-                             Grid.Row="7"/>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="20"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30*"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30*"/>
+                        </Grid.RowDefinitions>
+                        <Label Content="Name"
+                               Grid.Row="0"
+                               Padding="5,0"/>
+                        <TextBox Name="NamePresetTextBox"
+                                 Grid.Row="1"
+                                 Padding="5"
+                                 TextWrapping="Wrap"/>
+                        <Label Content="Text"
+                               Grid.Row="2"
+                               Padding="5,10,0,0"/>
+                        <RichTextBox Name="TextPresetRichTextBox"
+                                     Grid.Row="3">
+                            <RichTextBox.CommandBindings>
+                                <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"
+                                                Executed="SetBoldCmd_Executed"
+                                                CanExecute="FormattingCmd_CanExecute"/>
+                                <CommandBinding Command="EditingCommands.ToggleBold"
+                                                Executed="SetBoldCmd_Executed"
+                                                CanExecute="FormattingCmd_CanExecute"/>
+                                <CommandBinding Command="local:FormattingCommand.SetItalicTextCmd"
+                                                Executed="SetItalicCmd_Executed"
+                                                CanExecute="FormattingCmd_CanExecute"/>
+                                <CommandBinding Command="EditingCommands.ToggleItalic"
+                                                Executed="SetItalicCmd_Executed"
+                                                CanExecute="FormattingCmd_CanExecute"/>
+                                <CommandBinding Command="local:FormattingCommand.SetUnderlineTextCmd"
+                                                Executed="SetUnderlineCmd_Executed"
+                                                CanExecute="FormattingCmd_CanExecute"/>
+                                <CommandBinding Command="EditingCommands.ToggleUnderline"
+                                                Executed="SetUnderlineCmd_Executed"
+                                                CanExecute="FormattingCmd_CanExecute"/>
+                                <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
+                                                Executed="SetStrikethroughCmd_Executed"
+                                                CanExecute="FormattingCmd_CanExecute"/>
+                                <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
+                                                Executed="SetSpoilerCmd_Executed"
+                                                CanExecute="FormattingCmd_CanExecute"/>
+                            </RichTextBox.CommandBindings>
+                        </RichTextBox>
+                        <Label Content="Preview"
+                               Grid.Row="4"
+                               Padding="5,10,0,0"/>
+                        <ScrollViewer x:Name="PreviewPresetWindow"
+                                      Style="{StaticResource BorderScrollViewer}"
+                                      Grid.Row="5"/>
+                    </Grid>
+                    <Grid Grid.Row="0"
+                          Grid.Column="1"
+                          Margin="0,0,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="20"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Label Content="Presets"
+                               Grid.Row="0"
+                               Padding="5,0"/>
+                        <ScrollViewer Style="{StaticResource BorderScrollViewer}"
+                                      Grid.Row="1">
+                            <StackPanel x:Name="PresetsStackPanel"/>
+                        </ScrollViewer>
+                    </Grid>
+                    <Grid Grid.Row="1"
+                          Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Button x:Name="UpdatePresetButton"
+                                Click="UpdatePresetButton_Click"
+                                Content="Update"
+                                Grid.ColumnSpan="2"
+                                Grid.Row="0"
+                                Margin="0,0,0,5"/>
+                        <Button x:Name="AddPresetButton"
+                                Click="AddPresetButton_Click"
+                                Content="Add"
+                                Grid.Column="0"
+                                Grid.Row="1"
+                                Margin="0,5,5,0"/>
+                        <Button x:Name="DeletePresetButton"
+                                Click="DeletePresetButton_Click"
+                                Content="Delete"
+                                Grid.Column="1"
+                                Grid.Row="1"
+                                Margin="5,5,0,0"/>
+                    </Grid>
                 </Grid>
-                <Grid Grid.Row="0"
-                      Grid.Column="1"
-                      Margin="0,0,0,10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="20"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Label Content="Profiles"
-                           Grid.Row="0"
-                           Padding="5,0"/>
-                    <ScrollViewer Style="{StaticResource BorderScrollViewer}"
-                                  Grid.Row="1">
-                        <StackPanel x:Name="ProfilesStackPanel"/>
-                    </ScrollViewer>
-                </Grid>
-                <Grid Grid.Row="1"
-                      Grid.Column="1">
+            </TabItem>
+            <TabItem Name="SettingsTab"
+                     Header="Settings">
+                <Grid Margin="10">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="170"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="70"/>
                     </Grid.RowDefinitions>
-                    <Button x:Name="UpdateConfigButton"
-                            Click="UpdateConfigButton_Click"
-                            Content="Update"
-                            Grid.ColumnSpan="2"
-                            Grid.Row="0"
-                            Margin="0,0,0,5"/>
-                    <Button x:Name="AddConfigButton"
-                            Click="AddConfigButton_Click"
-                            Content="Add"
-                            Grid.Column="0"
-                            Grid.Row="1"
-                            Margin="0,5,5,0"/>
-                    <Button x:Name="DeleteConfigButton"
-                            Click="DeleteConfigButton_Click"
-                            Content="Delete"
-                            Grid.Column="1"
-                            Grid.Row="1"
-                            Margin="5,5,0,0"/>
+                    <Grid Grid.Column="0"
+                          Grid.RowSpan="2"
+                          Margin="0,0,10,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="20"/>
+                            <RowDefinition Height="15*"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30*"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="15*"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="15*"/>
+                        </Grid.RowDefinitions>
+                        <Label Content="Name"
+                               Grid.Row="0"
+                               Padding="5,0"/>
+                        <TextBox Name="NameTextBox" 
+                                 Grid.Row="1"
+                                 Padding="5"
+                                 TextWrapping="Wrap"/>
+                        <Label Content="Token"
+                               Grid.Row="2"
+                               Padding="5,10,0,0"/>
+                        <TextBox Name="TokenTextBox"
+                                 Grid.Row="3"
+                                 Padding="5"
+                                 TextWrapping="Wrap"/>
+                        <Label Content="ChatId" 
+                               Grid.Row="4"
+                               Padding="5,10,0,0"/>
+                        <TextBox Name="ChatIdTextBox" 
+                                 Padding="5"
+                                 Grid.Row="5"/>
+                        <Label Content="ReplyMessageId" 
+                               Grid.Row="6"
+                               Padding="5,10,0,0"/>
+                        <TextBox Name="ReplyMessageIdTextBox" 
+                                 Padding="5"
+                                 Grid.Row="7"/>
+                    </Grid>
+                    <Grid Grid.Row="0"
+                          Grid.Column="1"
+                          Margin="0,0,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="20"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Label Content="Profiles"
+                               Grid.Row="0"
+                               Padding="5,0"/>
+                        <ScrollViewer Style="{StaticResource BorderScrollViewer}"
+                                      Grid.Row="1">
+                            <StackPanel x:Name="ProfilesStackPanel"/>
+                        </ScrollViewer>
+                    </Grid>
+                    <Grid Grid.Row="1"
+                          Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Button x:Name="UpdateConfigButton"
+                                Click="UpdateConfigButton_Click"
+                                Content="Update"
+                                Grid.ColumnSpan="2"
+                                Grid.Row="0"
+                                Margin="0,0,0,5"/>
+                        <Button x:Name="AddConfigButton"
+                                Click="AddConfigButton_Click"
+                                Content="Add"
+                                Grid.Column="0"
+                                Grid.Row="1"
+                                Margin="0,5,5,0"/>
+                        <Button x:Name="DeleteConfigButton"
+                                Click="DeleteConfigButton_Click"
+                                Content="Delete"
+                                Grid.Column="1"
+                                Grid.Row="1"
+                                Margin="5,5,0,0"/>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </TabItem>
-    </TabControl>
+            </TabItem>
+        </TabControl>
+        <TextBlock Name="ErrorTextBlock"
+                   Style="{StaticResource ErrorTextBlock}"
+                   Grid.Row="1">
+        </TextBlock>
+    </Grid>
 </Window>
