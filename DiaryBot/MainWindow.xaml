@@ -197,7 +197,7 @@
                                 Margin="5,0,0,5"
                                 VerticalAlignment="Top"
                                 Content="Edit"/>
-                        <ScrollViewer x:Name="PreviewWindow"
+                        <ScrollViewer x:Name="PreviewMessageWindow"
                                       Style="{StaticResource BorderScrollViewer}"
                                       Grid.Row="1"
                                       Grid.ColumnSpan="2"/>

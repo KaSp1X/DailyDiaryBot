@@ -338,7 +338,7 @@ namespace DiaryBot
                     }
 
                     // rendering preview window
-                    ScrollViewer scrollViewer = richTextBox.Name == "TextPresetRichTextBox" ? PreviewPresetWindow : PreviewWindow;
+                    ScrollViewer scrollViewer = richTextBox.Name == "TextPresetRichTextBox" ? PreviewPresetWindow : PreviewMessageWindow;
 
                     string @fixed = range.Text.Replace("&", "&amp;").Replace("<", "&lt;");
                     var xaml = """
