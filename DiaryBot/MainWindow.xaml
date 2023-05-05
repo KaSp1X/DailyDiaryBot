@@ -332,8 +332,8 @@
                     </Grid>
                 </Grid>
             </TabItem>
-            <TabItem Name="SettingsTab"
-                     Header="Settings">
+            <TabItem Name="ConfigsTab"
+                     Header="Configs">
                 <Grid Margin="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -390,12 +390,12 @@
                             <RowDefinition Height="20"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Label Content="Profiles"
+                        <Label Content="Configs"
                                Grid.Row="0"
                                Padding="5,0"/>
                         <ScrollViewer Style="{StaticResource BorderScrollViewer}"
                                       Grid.Row="1">
-                            <StackPanel x:Name="ProfilesStackPanel"/>
+                            <StackPanel x:Name="ConfigsStackPanel"/>
                         </ScrollViewer>
                     </Grid>
                     <Grid Grid.Row="1"

@@ -65,9 +65,9 @@ namespace DiaryBot
             }
         }
 
-        private void UpdateProfilesPanel()
+        private void UpdateConfigsPanel()
         {
-            ProfilesStackPanel.Children.Clear();
+            ConfigsStackPanel.Children.Clear();
             for (int i = Configs.Instance.ConfigsList.Count - 1; i >= 0; i--)
             {
                 string name = Configs.Instance.ConfigsList[i].Name.Replace("&", "&amp;").Replace("<", "&lt;");
@@ -105,7 +105,7 @@ namespace DiaryBot
                         ChatIdTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
                         ReplyMessageIdTextBox.Text = replyMessageId;
                     }
-                    ProfilesStackPanel.Children.Add(button);
+                    ConfigsStackPanel.Children.Add(button);
                 }
             }
         }
@@ -157,7 +157,7 @@ namespace DiaryBot
 
         private void ProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            foreach (UIElement obj in ProfilesStackPanel.Children)
+            foreach (UIElement obj in ConfigsStackPanel.Children)
             {
                 Button button = obj as Button;
                 if (button != sender)
@@ -256,9 +256,9 @@ namespace DiaryBot
                 ClearRecentTab();
             }
 
-            if (SettingsTab.IsSelected)
+            if (ConfigsTab.IsSelected)
             {
-                UpdateProfilesPanel();
+                UpdateConfigsPanel();
             }
             else
             {
@@ -279,7 +279,7 @@ namespace DiaryBot
 
         private void ClearConfigsTab()
         {
-            ProfilesStackPanel.Children.Clear();
+            ConfigsStackPanel.Children.Clear();
             NameTextBox.Clear();
             TokenTextBox.Clear();
             ChatIdTextBox.Clear();
@@ -479,7 +479,7 @@ namespace DiaryBot
                 ReplyMessageId = int.TryParse(ReplyMessageIdTextBox.Text, out int replyMessageId) ? replyMessageId : null,
             };
             Configs.UpdateConfig(Configs.Instance.SelectedConfig, config);
-            UpdateProfilesPanel();
+            UpdateConfigsPanel();
         }
 
         private void AddConfigButton_Click(object sender, RoutedEventArgs e)
@@ -499,7 +499,7 @@ namespace DiaryBot
                 ReplyMessageId = int.TryParse(ReplyMessageIdTextBox.Text, out int replyMessageId) ? replyMessageId : null,
             };
             Configs.AddConfig(config);
-            UpdateProfilesPanel();
+            UpdateConfigsPanel();
         }
 
         private void DeleteConfigButton_Click(object sender, RoutedEventArgs e)
@@ -520,7 +520,7 @@ namespace DiaryBot
                     TurnBackToNormalDeleteConfigButton();
                     // Delete
                     Configs.RemoveConfig(Configs.Instance.SelectedConfig);
-                    UpdateProfilesPanel();
+                    UpdateConfigsPanel();
                 }
             }
         }

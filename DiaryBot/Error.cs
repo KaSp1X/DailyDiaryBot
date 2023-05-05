@@ -47,9 +47,9 @@ namespace DiaryBot
         public static string FormatMessage(string message) => message switch
         {
             "Exception during making request" => "No connection to the server. Check your network connection and try again!",
-            "Unauthorized" => "Your token is invalid. Change in settings and restart the app.",
-            "Not Found" => "Your token is invalid. Change in settings and restart the app.",
-            "Bad Request: chat not found" => "Your chat id is invalid. Check your settings is it trully correct in there.",
+            "Unauthorized" => "Your token is invalid. Change in configs and restart the app.",
+            "Not Found" => "Your token is invalid. Change in configs and restart the app.",
+            "Bad Request: chat not found" => "Your chat id is invalid. Check your configs is it trully correct in there.",
             _ => $"{message}!"
         };
     }
