@@ -100,10 +100,10 @@ namespace DiaryBot
                     if (Configs.Instance.ConfigsList[i].Equals(Configs.Instance.SelectedConfig))
                     {
                         button.Background = Brushes.LightGoldenrodYellow;
-                        NameTextBox.Text = Configs.Instance.SelectedConfig.Name;
-                        TokenTextBox.Text = Configs.Instance.SelectedConfig.Token;
-                        ChatIdTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
-                        ReplyMessageIdTextBox.Text = replyMessageId;
+                        NameConfigTextBox.Text = Configs.Instance.SelectedConfig.Name;
+                        TokenConfigTextBox.Text = Configs.Instance.SelectedConfig.Token;
+                        ChatIdConfigTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
+                        ReplyMessageIdConfigTextBox.Text = replyMessageId;
                     }
                     ConfigsStackPanel.Children.Add(button);
                 }
@@ -169,17 +169,17 @@ namespace DiaryBot
                     if (index >= 0 && index < Configs.Instance.ConfigsList.Count)
                     {
                         Configs.Instance.SelectedConfig = Configs.Instance.ConfigsList[index];
-                        NameTextBox.Text = Configs.Instance.SelectedConfig.Name;
-                        TokenTextBox.Text = Configs.Instance.SelectedConfig.Token;
+                        NameConfigTextBox.Text = Configs.Instance.SelectedConfig.Name;
+                        TokenConfigTextBox.Text = Configs.Instance.SelectedConfig.Token;
                         if (long.TryParse(Configs.Instance.SelectedConfig.Token.Split(':')[0], out long token) && token != Bot.GetToken())
                         {
                             Bot.Instance = null;
                         }
-                        ChatIdTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
+                        ChatIdConfigTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
                         string replyMessageId = Configs.Instance.SelectedConfig.ReplyMessageId.ToString();
                         if (string.IsNullOrEmpty(replyMessageId))
                             replyMessageId = "Empty";
-                        ReplyMessageIdTextBox.Text = replyMessageId;
+                        ReplyMessageIdConfigTextBox.Text = replyMessageId;
                     }
                 }
             }
@@ -280,10 +280,10 @@ namespace DiaryBot
         private void ClearConfigsTab()
         {
             ConfigsStackPanel.Children.Clear();
-            NameTextBox.Clear();
-            TokenTextBox.Clear();
-            ChatIdTextBox.Clear();
-            ReplyMessageIdTextBox.Clear();
+            NameConfigTextBox.Clear();
+            TokenConfigTextBox.Clear();
+            ChatIdConfigTextBox.Clear();
+            ReplyMessageIdConfigTextBox.Clear();
         }
 
         private void ClearPresetsTab()
@@ -464,19 +464,19 @@ namespace DiaryBot
 
         private void UpdateConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(NameTextBox.Text) ||
-                string.IsNullOrWhiteSpace(TokenTextBox.Text) ||
-                string.IsNullOrWhiteSpace(ChatIdTextBox.Text) ||
-                Configs.Instance.ConfigsList.Any(x => x.Name == NameTextBox.Text))
+            if (string.IsNullOrWhiteSpace(NameConfigTextBox.Text) ||
+                string.IsNullOrWhiteSpace(TokenConfigTextBox.Text) ||
+                string.IsNullOrWhiteSpace(ChatIdConfigTextBox.Text) ||
+                Configs.Instance.ConfigsList.Any(x => x.Name == NameConfigTextBox.Text))
                 return;
 
             // Update
             Configs.Config config = new Configs.Config()
             {
-                Name = NameTextBox.Text,
-                Token = TokenTextBox.Text,
-                ChatId = ChatIdTextBox.Text,
-                ReplyMessageId = int.TryParse(ReplyMessageIdTextBox.Text, out int replyMessageId) ? replyMessageId : null,
+                Name = NameConfigTextBox.Text,
+                Token = TokenConfigTextBox.Text,
+                ChatId = ChatIdConfigTextBox.Text,
+                ReplyMessageId = int.TryParse(ReplyMessageIdConfigTextBox.Text, out int replyMessageId) ? replyMessageId : null,
             };
             Configs.UpdateConfig(Configs.Instance.SelectedConfig, config);
             UpdateConfigsPanel();
@@ -484,19 +484,19 @@ namespace DiaryBot
 
         private void AddConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(NameTextBox.Text) ||
-                string.IsNullOrWhiteSpace(TokenTextBox.Text) ||
-                string.IsNullOrWhiteSpace(ChatIdTextBox.Text) ||
-                Configs.Instance.ConfigsList.Any(x => x.Name == NameTextBox.Text))
+            if (string.IsNullOrWhiteSpace(NameConfigTextBox.Text) ||
+                string.IsNullOrWhiteSpace(TokenConfigTextBox.Text) ||
+                string.IsNullOrWhiteSpace(ChatIdConfigTextBox.Text) ||
+                Configs.Instance.ConfigsList.Any(x => x.Name == NameConfigTextBox.Text))
                 return;
 
             // Add
             Configs.Config config = new Configs.Config()
             {
-                Name = NameTextBox.Text,
-                Token = TokenTextBox.Text,
-                ChatId = ChatIdTextBox.Text,
-                ReplyMessageId = int.TryParse(ReplyMessageIdTextBox.Text, out int replyMessageId) ? replyMessageId : null,
+                Name = NameConfigTextBox.Text,
+                Token = TokenConfigTextBox.Text,
+                ChatId = ChatIdConfigTextBox.Text,
+                ReplyMessageId = int.TryParse(ReplyMessageIdConfigTextBox.Text, out int replyMessageId) ? replyMessageId : null,
             };
             Configs.AddConfig(config);
             UpdateConfigsPanel();
