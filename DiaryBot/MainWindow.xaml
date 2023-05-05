@@ -36,9 +36,9 @@
                             <MenuItem Command="ApplicationCommands.Delete"/>
                             <Separator/>
                             <MenuItem Header="_Formatting">
-                                <MenuItem Command="EditingCommands.ToggleBold"/>
-                                <MenuItem Command="EditingCommands.ToggleItalic"/>
-                                <MenuItem Command="EditingCommands.ToggleUnderline"/>
+                                <MenuItem Command="local:FormattingCommand.SetBoldTextCmd"/>
+                                <MenuItem Command="local:FormattingCommand.SetItalicTextCmd"/>
+                                <MenuItem Command="local:FormattingCommand.SetUnderlineTextCmd"/>
                                 <MenuItem Command="local:FormattingCommand.SetStrikethroughTextCmd"/>
                                 <MenuItem Command="local:FormattingCommand.SetSpoilerTextCmd"/>
                             </MenuItem>
@@ -87,23 +87,6 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Window.CommandBindings>
-        <CommandBinding Command="EditingCommands.ToggleBold"
-                        Executed="SetBoldCmd_Executed"
-                        CanExecute="FormattingCmd_CanExecute"/>
-        <CommandBinding Command="EditingCommands.ToggleItalic"
-                        Executed="SetItalicCmd_Executed"
-                        CanExecute="FormattingCmd_CanExecute"/>
-        <CommandBinding Command="EditingCommands.ToggleUnderline"
-                        Executed="SetUnderlineCmd_Executed"
-                        CanExecute="FormattingCmd_CanExecute"/>
-        <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
-                        Executed="SetStrikethroughCmd_Executed"
-                        CanExecute="FormattingCmd_CanExecute"/>
-        <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
-                        Executed="SetSpoilerCmd_Executed"
-                        CanExecute="FormattingCmd_CanExecute"/>
-    </Window.CommandBindings>
     <TabControl SelectionChanged="MainWindowTabControl_SelectionChanged">
         <TabItem Name="MessageTab"
                  Header="Message">
@@ -112,7 +95,34 @@
                     <ColumnDefinition Width="62*"/>
                     <ColumnDefinition Width="38*"/>
                 </Grid.ColumnDefinitions>
-                <RichTextBox Name="MessageRichTextBox"/>
+                <RichTextBox Name="MessageRichTextBox">
+                    <RichTextBox.CommandBindings>
+                        <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"
+                                        Executed="SetBoldCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="EditingCommands.ToggleBold"
+                                        Executed="SetBoldCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="local:FormattingCommand.SetItalicTextCmd"
+                                        Executed="SetItalicCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="EditingCommands.ToggleItalic"
+                                        Executed="SetItalicCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="local:FormattingCommand.SetUnderlineTextCmd"
+                                        Executed="SetUnderlineCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="EditingCommands.ToggleUnderline"
+                                        Executed="SetUnderlineCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
+                                        Executed="SetStrikethroughCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                        <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
+                                        Executed="SetSpoilerCmd_Executed"
+                                        CanExecute="FormattingCmd_CanExecute"/>
+                    </RichTextBox.CommandBindings>
+                </RichTextBox>
                 <Grid Grid.Column="1"
                       Margin="10,0,0,0">
                     <Grid.RowDefinitions>
@@ -191,7 +201,34 @@
                            Grid.Row="2"
                            Padding="5,10,0,0"/>
                     <RichTextBox Name="TextPresetRichTextBox"
-                                 Grid.Row="3"/>
+                                 Grid.Row="3">
+                        <RichTextBox.CommandBindings>
+                            <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"
+                                            Executed="SetBoldCmd_Executed"
+                                            CanExecute="FormattingCmd_CanExecute"/>
+                            <CommandBinding Command="EditingCommands.ToggleBold"
+                                            Executed="SetBoldCmd_Executed"
+                                            CanExecute="FormattingCmd_CanExecute"/>
+                            <CommandBinding Command="local:FormattingCommand.SetItalicTextCmd"
+                                            Executed="SetItalicCmd_Executed"
+                                            CanExecute="FormattingCmd_CanExecute"/>
+                            <CommandBinding Command="EditingCommands.ToggleItalic"
+                                            Executed="SetItalicCmd_Executed"
+                                            CanExecute="FormattingCmd_CanExecute"/>
+                            <CommandBinding Command="local:FormattingCommand.SetUnderlineTextCmd"
+                                            Executed="SetUnderlineCmd_Executed"
+                                            CanExecute="FormattingCmd_CanExecute"/>
+                            <CommandBinding Command="EditingCommands.ToggleUnderline"
+                                            Executed="SetUnderlineCmd_Executed"
+                                            CanExecute="FormattingCmd_CanExecute"/>
+                            <CommandBinding Command="local:FormattingCommand.SetStrikethroughTextCmd"
+                                            Executed="SetStrikethroughCmd_Executed"
+                                            CanExecute="FormattingCmd_CanExecute"/>
+                            <CommandBinding Command="local:FormattingCommand.SetSpoilerTextCmd"
+                                            Executed="SetSpoilerCmd_Executed"
+                                            CanExecute="FormattingCmd_CanExecute"/>
+                        </RichTextBox.CommandBindings>
+                    </RichTextBox>
                     <Label Content="Preview"
                            Grid.Row="4"
                            Padding="5,10,0,0"/>
