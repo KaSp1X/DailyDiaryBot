@@ -5,13 +5,11 @@
     <TargetFramework>net7.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Icons\diary.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="MainWindow.xaml~RF425023f7.TMP" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Content Include="Icons\diary.ico" />
     <PackageReference Include="Telegram.Bot" Version="18.0.0" />
   </ItemGroup>
 
