@@ -155,11 +155,11 @@ namespace DiaryBot
             // cause we are processing it with Insert() method
             // although it doesn't save from selftyped tags
             // if there are, it will leave them as plain text
-            text = Regex.Replace(text, @"\[\\b\](.*?)\[\\b0\]", @$"<TextBlock FontWeight=""Bold"">$1</TextBlock>");
-            text = Regex.Replace(text, @"\[\\i\](.*?)\[\\i0\]", @$"<TextBlock FontStyle=""Italic"">$1</TextBlock>");
-            text = Regex.Replace(text, @"\[\\u\](.*?)\[\\u0\]", @$"<TextBlock TextDecorations=""Underline"">$1</TextBlock>");
-            text = Regex.Replace(text, @"\[\\s\](.*?)\[\\s0\]", @$"<TextBlock TextDecorations=""Strikethrough"">$1</TextBlock>");
-            text = Regex.Replace(text, @"\[\\v\](.*?)\[\\v0\]", @$"<TextBlock TextDecorations=""OverLine"">$1</TextBlock>");
+            text = Regex.Replace(text, @"\[\\b\](.*?)\[\\b0\]", @$"<Span FontWeight=""Bold"">$1</Span>");
+            text = Regex.Replace(text, @"\[\\i\](.*?)\[\\i0\]", @$"<Span FontStyle=""Italic"">$1</Span>");
+            text = Regex.Replace(text, @"\[\\u\](.*?)\[\\u0\]", @$"<Span TextDecorations=""Underline"">$1</Span>");
+            text = Regex.Replace(text, @"\[\\s\](.*?)\[\\s0\]", @$"<Span TextDecorations=""Strikethrough"">$1</Span>");
+            text = Regex.Replace(text, @"\[\\v\](.*?)\[\\v0\]", @$"<Span Background=""LightGray"">$1</Span>");
             text = text.Replace("\r\n", "<LineBreak/>");
             return text;
         }
