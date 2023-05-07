@@ -15,25 +15,25 @@ namespace DiaryBot
 
         private Bot()
         {
-            if (!string.IsNullOrWhiteSpace(Configs.Instance.SelectedConfig.Token))
-                client = new TelegramBotClient(Configs.Instance.SelectedConfig.Token);
+            if (!string.IsNullOrWhiteSpace(Configs.Instance.SelectedItem?.Token))
+                client = new TelegramBotClient(Configs.Instance.SelectedItem.Token);
         }
 
         public async Task SendMessage(string message)
         {
             if (client != null)
             {
-                if (string.IsNullOrWhiteSpace(Configs.Instance.SelectedConfig.ChatId))
+                if (string.IsNullOrWhiteSpace(Configs.Instance.SelectedItem?.ChatId))
                     Error.Instance.Message = "Bad Request: chat not found";
                 else
                 {
                     try
                     {
                         var htmlMessage = message.ToHtml();
-                        var result = await client.SendTextMessageAsync(Configs.Instance.SelectedConfig.ChatId, 
+                        var result = await client.SendTextMessageAsync(Configs.Instance.SelectedItem.ChatId, 
                             htmlMessage, ParseMode.Html, 
-                            replyToMessageId: Configs.Instance.SelectedConfig.ReplyMessageId);
-                        Messages.AddLastMessage(result.MessageId, message);
+                            replyToMessageId: Configs.Instance.SelectedItem.ReplyMessageId);
+                        Messages.Instance.Add(new(result.MessageId, message));
                         Error.Instance.Message = "Success";
                     }
                     catch (RequestException ex)
@@ -48,24 +48,24 @@ namespace DiaryBot
         {
             if (client != null)
             {
-                if (string.IsNullOrWhiteSpace(Configs.Instance.SelectedConfig.ChatId))
+                if (string.IsNullOrWhiteSpace(Configs.Instance.SelectedItem?.ChatId))
                     Error.Instance.Message = "Bad Request: chat not found";
-                else if (Messages.Instance.PickedMessage == null)
+                else if (Messages.Instance.SelectedItem == null)
                     Error.Instance.Message = "Picked message not found";
-                else if (Messages.Instance.PickedMessage?.Text == message)
+                else if (Messages.Instance.SelectedItem?.Text == message)
                     Error.Instance.Message = "You can't update not edited message";
                 else
                 {
                     try
                     {
                         var htmlMessage = message.ToHtml();
-                        var result = await client.EditMessageTextAsync(Configs.Instance.SelectedConfig.ChatId, Messages.Instance.PickedMessage.Value.Id, htmlMessage, ParseMode.Html);
-                        Messages.UpdateLastMessage(result.MessageId, message);
+                        var result = await client.EditMessageTextAsync(Configs.Instance.SelectedItem.ChatId, Messages.Instance.SelectedItem.Id, htmlMessage, ParseMode.Html);
+                        Messages.Instance.Update(new(result.MessageId, message));
                         Error.Instance.Message = "Success";
                     }
                     catch (RequestException ex) when (ex.Message == "Bad Request: message to edit not found")
                     {
-                        Messages.RemoveMessage(Messages.Instance.PickedMessage);
+                        Messages.Instance.Remove();
                         Error.Instance.Message = ex.Message;
                     }
                     catch (RequestException ex)

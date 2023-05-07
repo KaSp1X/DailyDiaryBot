@@ -33,7 +33,7 @@ namespace DiaryBot
         private void UpdateRecentGrid()
         {
             RecentGrid.Children.Clear();
-            for (int i = 0; i < Messages.Instance.MessagesList.Count; i++)
+            for (int i = 0; i < Messages.Instance.Items.Count; i++)
             {
                 var button = new Button
                 {
@@ -45,7 +45,7 @@ namespace DiaryBot
                     HorizontalContentAlignment = HorizontalAlignment.Stretch,
                     VerticalContentAlignment = VerticalAlignment.Stretch
                 };
-                string @fixed = Messages.Instance.MessagesList[i].Text.Replace("&", "&amp;").Replace("<", "&lt;");
+                string @fixed = Messages.Instance[i]?.Text.Replace("&", "&amp;").Replace("<", "&lt;") ?? string.Empty;
                 var xaml = "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\">"
         + @fixed.ToXaml() + " </TextBlock>";
                 var textBlock = XamlReader.Parse(xaml) as TextBlock;
@@ -54,7 +54,7 @@ namespace DiaryBot
                     textBlock.TextWrapping = TextWrapping.Wrap;
                     button.Content = textBlock;
                 }
-                if (Messages.Instance[i]?.Id == Messages.Instance.PickedMessage?.Id)
+                if (Messages.Instance[i]?.Id == Messages.Instance.SelectedItem?.Id)
                 {
                     button.Background = Brushes.LightGoldenrodYellow;
                 }
@@ -68,14 +68,12 @@ namespace DiaryBot
         private void UpdateConfigsPanel()
         {
             ConfigsStackPanel.Children.Clear();
-            for (int i = Configs.Instance.ConfigsList.Count - 1; i >= 0; i--)
+            for (int i = Configs.Instance.Items.Count - 1; i >= 0; i--)
             {
-                string name = Configs.Instance.ConfigsList[i].Name.Replace("&", "&amp;").Replace("<", "&lt;");
-                string token = Configs.Instance.ConfigsList[i].Token.Replace("&", "&amp;").Replace("<", "&lt;");
-                string chatId = Configs.Instance.ConfigsList[i].ChatId.Replace("&", "&amp;").Replace("<", "&lt;");
-                string replyMessageId = Configs.Instance.ConfigsList[i].ReplyMessageId.ToString();
-                if (string.IsNullOrEmpty(replyMessageId))
-                    replyMessageId = "Empty";
+                string name = Configs.Instance.Items[i].Name.Replace("&", "&amp;").Replace("<", "&lt;");
+                string token = Configs.Instance.Items[i].Token.Replace("&", "&amp;").Replace("<", "&lt;");
+                string chatId = Configs.Instance.Items[i].ChatId.Replace("&", "&amp;").Replace("<", "&lt;");
+                string replyMessageId = Configs.Instance.Items[i].ReplyMessageId.ToString() ?? "Empty";
 
                 var xaml = $"""
                     <Button xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -97,12 +95,12 @@ namespace DiaryBot
                 if (button != null)
                 {
                     button.Click += ProfileButton_Click;
-                    if (Configs.Instance.ConfigsList[i].Equals(Configs.Instance.SelectedConfig))
+                    if (Configs.Instance.Items[i].Equals(Configs.Instance.SelectedItem))
                     {
                         button.Background = Brushes.LightGoldenrodYellow;
-                        NameConfigTextBox.Text = Configs.Instance.SelectedConfig.Name;
-                        TokenConfigTextBox.Text = Configs.Instance.SelectedConfig.Token;
-                        ChatIdConfigTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
+                        NameConfigTextBox.Text = Configs.Instance.SelectedItem.Name;
+                        TokenConfigTextBox.Text = Configs.Instance.SelectedItem.Token;
+                        ChatIdConfigTextBox.Text = Configs.Instance.SelectedItem.ChatId;
                         ReplyMessageIdConfigTextBox.Text = replyMessageId;
                     }
                     ConfigsStackPanel.Children.Add(button);
@@ -113,10 +111,10 @@ namespace DiaryBot
         private void UpdatePresetsPanel()
         {
             PresetsStackPanel.Children.Clear();
-            for (int i = 0; i < Presets.Instance.PresetsList.Count; i++)
+            for (int i = 0; i < Presets.Instance.Items.Count; i++)
             {
-                string name = Presets.Instance.PresetsList[i].Name.Replace("&", "&amp;").Replace("<", "&lt;");
-                string text = Presets.Instance.PresetsList[i].Text.Replace("&", "&amp;").Replace("<", "&lt;");
+                string name = Presets.Instance.Items[i].Name.Replace("&", "&amp;").Replace("<", "&lt;");
+                string text = Presets.Instance.Items[i].Text.Replace("&", "&amp;").Replace("<", "&lt;");
 
                 var xaml = $"""
                     <Button xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -137,11 +135,11 @@ namespace DiaryBot
                 {
                     button.Click += PresetButton_Click;
                     button.MouseDoubleClick += PresetButton_MouseDoubleClick;
-                    if (Presets.Instance.PresetsList[i].Equals(Presets.Instance.SelectedPreset))
+                    if (Presets.Instance.Items[i].Equals(Presets.Instance.SelectedItem))
                     {
                         button.Background = Brushes.LightGoldenrodYellow;
-                        NamePresetTextBox.Text = Presets.Instance.SelectedPreset.Name;
-                        new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text = Presets.Instance.SelectedPreset.Text;
+                        NamePresetTextBox.Text = Presets.Instance.SelectedItem.Name;
+                        new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text = Presets.Instance.SelectedItem.Text;
                     }
                     PresetsStackPanel.Children.Add(button);
                 }
@@ -150,7 +148,7 @@ namespace DiaryBot
 
         private void PresetButton_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            MessageRichTextBox.Selection.Text = Presets.Instance.SelectedPreset.Text.TrimEnd('\n').TrimEnd('\r');
+            MessageRichTextBox.Selection.Text = Presets.Instance.SelectedItem.Text.TrimEnd('\n').TrimEnd('\r');
             MessageTab.IsSelected = true;
             RichTextBox_TextChanged(MessageRichTextBox, null);
         }
@@ -166,17 +164,17 @@ namespace DiaryBot
                 {
                     button.Background = Brushes.LightGoldenrodYellow;
                     int.TryParse(button.Name.Split('_')[1], out int index);
-                    if (index >= 0 && index < Configs.Instance.ConfigsList.Count)
+                    if (index >= 0 && index < Configs.Instance.Items.Count)
                     {
-                        Configs.Instance.SelectedConfig = Configs.Instance.ConfigsList[index];
-                        NameConfigTextBox.Text = Configs.Instance.SelectedConfig.Name;
-                        TokenConfigTextBox.Text = Configs.Instance.SelectedConfig.Token;
-                        if (long.TryParse(Configs.Instance.SelectedConfig.Token.Split(':')[0], out long token) && token != Bot.GetToken())
+                        Configs.Instance.SelectedItem = Configs.Instance.Items[index];
+                        NameConfigTextBox.Text = Configs.Instance.SelectedItem.Name;
+                        TokenConfigTextBox.Text = Configs.Instance.SelectedItem.Token;
+                        if (long.TryParse(Configs.Instance.SelectedItem.Token.Split(':')[0], out long token) && token != Bot.GetToken())
                         {
                             Bot.ClearInstance();
                         }
-                        ChatIdConfigTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
-                        string replyMessageId = Configs.Instance.SelectedConfig.ReplyMessageId.ToString();
+                        ChatIdConfigTextBox.Text = Configs.Instance.SelectedItem.ChatId;
+                        string replyMessageId = Configs.Instance.SelectedItem.ReplyMessageId.ToString();
                         if (string.IsNullOrEmpty(replyMessageId))
                             replyMessageId = "Empty";
                         ReplyMessageIdConfigTextBox.Text = replyMessageId;
@@ -196,11 +194,11 @@ namespace DiaryBot
                 {
                     button.Background = Brushes.LightGoldenrodYellow;
                     int.TryParse(button.Name.Split('_')[1], out int index);
-                    if (index >= 0 && index < Presets.Instance.PresetsList.Count)
+                    if (index >= 0 && index < Presets.Instance.Items.Count)
                     {
-                        Presets.Instance.SelectedPreset = Presets.Instance.PresetsList[index];
-                        NamePresetTextBox.Text = Presets.Instance.SelectedPreset.Name;
-                        new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text = Presets.Instance.SelectedPreset.Text;
+                        Presets.Instance.SelectedItem = Presets.Instance.Items[index];
+                        NamePresetTextBox.Text = Presets.Instance.SelectedItem.Name;
+                        new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text = Presets.Instance.SelectedItem.Text;
                     }
                 }
             }
@@ -230,9 +228,9 @@ namespace DiaryBot
 
         private void RecentButton_Click(object sender, RoutedEventArgs e)
         {
-            Messages.Instance.PickedMessage = Messages.Instance[(Grid.GetRow((Button)sender) == 1 ? 2 : 0) + Grid.GetColumn((Button)sender)];
+            Messages.Instance.SelectedItem = Messages.Instance[(Grid.GetRow((Button)sender) == 1 ? 2 : 0) + Grid.GetColumn((Button)sender)];
             var textRange = new TextRange(MessageRichTextBox.Document.ContentStart, MessageRichTextBox.Document.ContentEnd);
-            textRange.Text = Messages.Instance.PickedMessage?.Text;
+            textRange.Text = Messages.Instance.SelectedItem?.Text;
             foreach (UIElement obj in RecentGrid.Children)
             {
                 if (obj is Button)
@@ -294,7 +292,7 @@ namespace DiaryBot
             {
                 Text = string.Empty
             };
-            Presets.Instance.SelectedPreset = new(string.Empty, string.Empty);
+            Presets.Instance.SelectedItem = new(string.Empty, string.Empty);
         }
 
         private void RichTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -467,18 +465,13 @@ namespace DiaryBot
             if (string.IsNullOrWhiteSpace(NameConfigTextBox.Text) ||
                 string.IsNullOrWhiteSpace(TokenConfigTextBox.Text) ||
                 string.IsNullOrWhiteSpace(ChatIdConfigTextBox.Text) ||
-                Configs.Instance.ConfigsList.Any(x => x.Name == NameConfigTextBox.Text))
+                Configs.Instance.Items.Any(x => x.Name == NameConfigTextBox.Text && NameConfigTextBox.Text != Configs.Instance.SelectedItem?.Name))
                 return;
 
             // Update
-            Configs.Config config = new Configs.Config()
-            {
-                Name = NameConfigTextBox.Text,
-                Token = TokenConfigTextBox.Text,
-                ChatId = ChatIdConfigTextBox.Text,
-                ReplyMessageId = int.TryParse(ReplyMessageIdConfigTextBox.Text, out int replyMessageId) ? replyMessageId : null,
-            };
-            Configs.UpdateConfig(Configs.Instance.SelectedConfig, config);
+            Config config = new(NameConfigTextBox.Text, TokenConfigTextBox.Text, ChatIdConfigTextBox.Text,
+                int.TryParse(ReplyMessageIdConfigTextBox.Text, out int replyMessageId) ? replyMessageId : null);
+            Configs.Instance.Update(config);
             UpdateConfigsPanel();
         }
 
@@ -487,18 +480,13 @@ namespace DiaryBot
             if (string.IsNullOrWhiteSpace(NameConfigTextBox.Text) ||
                 string.IsNullOrWhiteSpace(TokenConfigTextBox.Text) ||
                 string.IsNullOrWhiteSpace(ChatIdConfigTextBox.Text) ||
-                Configs.Instance.ConfigsList.Any(x => x.Name == NameConfigTextBox.Text))
+                Configs.Instance.Items.Any(x => x.Name == NameConfigTextBox.Text))
                 return;
 
             // Add
-            Configs.Config config = new Configs.Config()
-            {
-                Name = NameConfigTextBox.Text,
-                Token = TokenConfigTextBox.Text,
-                ChatId = ChatIdConfigTextBox.Text,
-                ReplyMessageId = int.TryParse(ReplyMessageIdConfigTextBox.Text, out int replyMessageId) ? replyMessageId : null,
-            };
-            Configs.AddConfig(config);
+            Config config = new(NameConfigTextBox.Text, TokenConfigTextBox.Text, ChatIdConfigTextBox.Text,
+                int.TryParse(ReplyMessageIdConfigTextBox.Text, out int replyMessageId) ? replyMessageId : null);
+            Configs.Instance.Add(config);
             UpdateConfigsPanel();
         }
 
@@ -519,7 +507,7 @@ namespace DiaryBot
                 {
                     TurnBackToNormalDeleteConfigButton();
                     // Delete
-                    Configs.RemoveConfig(Configs.Instance.SelectedConfig);
+                    Configs.Instance.Remove();
                     UpdateConfigsPanel();
                 }
             }
@@ -538,12 +526,12 @@ namespace DiaryBot
             string text = new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text;
             if (string.IsNullOrWhiteSpace(NamePresetTextBox.Text) ||
                 string.IsNullOrWhiteSpace(text) ||
-                Presets.Instance.PresetsList.Any(x => x.Name == NamePresetTextBox.Text && NamePresetTextBox.Text != Presets.Instance.SelectedPreset.Name))
+                Presets.Instance.Items.Any(x => x.Name == NamePresetTextBox.Text && NamePresetTextBox.Text != Presets.Instance.SelectedItem?.Name))
                 return;
 
             // Update
-            var newPreset = new Presets.Preset(NamePresetTextBox.Text, text);
-            Presets.UpdatePreset(Presets.Instance.SelectedPreset, newPreset);
+            var newPreset = new Preset(NamePresetTextBox.Text, text);
+            Presets.Instance.Update(newPreset);
             UpdatePresetsPanel();
         }
 
@@ -552,12 +540,12 @@ namespace DiaryBot
             string text = new TextRange(TextPresetRichTextBox.Document.ContentStart, TextPresetRichTextBox.Document.ContentEnd).Text;
             if (string.IsNullOrWhiteSpace(NamePresetTextBox.Text) ||
                 string.IsNullOrWhiteSpace(text) ||
-                Presets.Instance.PresetsList.Any(x => x.Name == NamePresetTextBox.Text))
+                Presets.Instance.Items.Any(x => x.Name == NamePresetTextBox.Text))
                 return;
 
             //// Add
-            var newPreset = new Presets.Preset(NamePresetTextBox.Text, text);
-            Presets.AddPreset(newPreset);
+            var newPreset = new Preset(NamePresetTextBox.Text, text);
+            Presets.Instance.Add(newPreset);
             UpdatePresetsPanel();
         }
 
@@ -578,7 +566,7 @@ namespace DiaryBot
                 {
                     TurnBackToNormalDeletePresetButton();
                     // Delete
-                    Presets.RemovePreset(Presets.Instance.SelectedPreset);
+                    Presets.Instance.Remove();
                     UpdatePresetsPanel();
                 }
             }

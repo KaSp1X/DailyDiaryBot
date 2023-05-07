@@ -2,46 +2,35 @@
 
 namespace DiaryBot
 {
-    public sealed class Presets : Singleton<Presets>
+    public sealed class Presets : Singleton<Presets>, IRecordable<Preset>
     {
-        public record Preset(string Name, string Text);
+        public List<Preset> Items { get; init; }
+        public Preset? SelectedItem { get; set; }
 
-        private const string _path = "presets.json";
+        private Presets() => Items = Serializer.Load<List<Preset>>(GetPath()) ?? new();
 
-        private Presets() 
+        public string GetPath() => "presets.json";
+
+        public void Add(Preset newItem)
         {
-            PresetsList = Serializer.Load<List<Preset>>(_path) ?? new();
-            SelectedPreset = new(string.Empty, string.Empty);
+            Items.Add(newItem);
+            Serializer.Save(GetPath(), Items);
         }
 
-        public List<Preset> PresetsList { get; init; }
-
-        public Preset SelectedPreset { get; set; }
-
-        public static void AddPreset(Preset newPreset)
+        public void Update(Preset updatedItem)
         {
-            Instance.PresetsList.Add(newPreset);
-            Serializer.Save(_path, Instance.PresetsList);
-        }
-
-        public static void UpdatePreset(Preset selectedPreset, Preset updatedPreset)
-        {
-            int index = Instance.PresetsList.IndexOf(selectedPreset);
+            int index = Items.IndexOf(SelectedItem);
             if (index != -1)
             {
-                Instance.PresetsList[index] = updatedPreset;
-                Serializer.Save(_path, Instance.PresetsList);
+                Items[index] = updatedItem;
+                Serializer.Save(GetPath(), Items);
             }
         }
 
-        public static void RemovePreset(Preset selectedPreset)
+        public void Remove()
         {
-            int index = Instance.PresetsList.IndexOf(selectedPreset);
-            if (index != -1)
-            {
-                Instance.PresetsList.RemoveAt(index);
-                Serializer.Save(_path, Instance.PresetsList);
-            }
+            Items.Remove(SelectedItem);
+            Serializer.Save(GetPath(), Items);
         }
     }
 }

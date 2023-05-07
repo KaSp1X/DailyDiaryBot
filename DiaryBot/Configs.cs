@@ -2,65 +2,43 @@
 
 namespace DiaryBot
 {
-    public sealed class Configs : Singleton<Configs>
+    public sealed class Configs : Singleton<Configs>, IRecordable<Config>
     {
-        private const string _path = "config.json";
-
-        public struct Config
-        {
-            public string Name { get; set; }
-            public string Token { get; set; }
-            public string ChatId { get; set; }
-            public int? ReplyMessageId { get; set; }
-
-            public Config(string name, string token, string chatId, int? replyMessageId = null)
-            {
-                Name = name;
-                Token = token;
-                ChatId = chatId;
-                ReplyMessageId = replyMessageId;
-            }
-        }
+        public List<Config> Items { get; init; }
+        public Config? SelectedItem { get; set; }
 
         private Configs()
         {
-            ConfigsList = Serializer.Load<List<Config>>(_path) ?? new();
-            SelectedConfig = ConfigsList.Count > 0 ? ConfigsList[^1] : default;
-            if (string.IsNullOrWhiteSpace(SelectedConfig.Token))
-                Error.Instance.Message = "Fill fields in config, save and restart the app";
+            Items = Serializer.Load<List<Config>>(GetPath()) ?? new();
+            SelectedItem = Items.Count > 0 ? Items[^1] : null;
+            if (string.IsNullOrWhiteSpace(SelectedItem?.Token))
+                Error.Instance.Message = "Create a new configuration profile to proceed futher";
         }
 
-        public List<Config> ConfigsList { get; init; }
+        public string GetPath() => "config.json";
 
-        public Config SelectedConfig { get; set; }
-
-        public static void AddConfig(Config newConfig)
+        public void Add(Config newItem)
         {
-            Instance.ConfigsList.Add(newConfig);
-            Instance.SelectedConfig = Instance.ConfigsList[^1];
-            Serializer.Save(_path, Instance.ConfigsList);
+            Items.Add(newItem);
+            SelectedItem = Items[^1];
+            Serializer.Save(GetPath(), Items);
         }
 
-        public static void UpdateConfig(Config selectedConfig, Config updatedConfig)
+        public void Update(Config updatedItem)
         {
-            int index = Instance.ConfigsList.IndexOf(selectedConfig);
+            int index = Items.IndexOf(SelectedItem);
             if (index != -1)
             {
-                Instance.ConfigsList[index] = updatedConfig;
-                Instance.SelectedConfig = updatedConfig;
-                Serializer.Save(_path, Instance.ConfigsList);
+                Items[index] = SelectedItem = updatedItem;
+                Serializer.Save(GetPath(), Items);
             }
         }
 
-        public static void RemoveConfig(Config selectedConfig)
+        public void Remove()
         {
-            int index = Instance.ConfigsList.IndexOf(selectedConfig);
-            if (index != -1)
-            {
-                Instance.ConfigsList.RemoveAt(index);
-                Instance.SelectedConfig = Instance.ConfigsList.Count > 0 ? Instance.ConfigsList[^1] : default;
-                Serializer.Save(_path, Instance.ConfigsList);
-            }
+            Items.Remove(SelectedItem);
+            SelectedItem = Items.Count > 0 ? Items[^1] : null;
+            Serializer.Save(GetPath(), Items);
         }
     }
 }

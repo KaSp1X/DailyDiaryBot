@@ -1,98 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace DiaryBot
 {
-    public sealed class Messages : Singleton<Messages>
+    public sealed class Messages : Singleton<Messages>, IRecordable<Message>
     {
-        private const string _path = "messages.json";
+        private const int _messageLimit = 4;
 
-        public struct Message
-        {
-            public int Id { get; set; }
-            public string Text { get; set; }
-
-            public Message(int Id, string Text)
-            {
-                this.Id = Id;
-                this.Text = Text;
-            }
-        }
+        public List<Message> Items { get; init; }
+        public Message? SelectedItem { get; set; }
 
         private Messages() 
         { 
-            MessagesList = Serializer.Load<List<Message>>(_path) ?? new();
-            PickedMessage = MessagesList[0];
+            Items = Serializer.Load<List<Message>>(GetPath()) ?? new();
+            SelectedItem = this[0];
         }
 
-        public List<Message> MessagesList { get; init; }
-
-        public Message? PickedMessage { get; set; }
+        public string GetPath() => "messages.json";
 
         public Message? this[int index]
         {
             get
             {
-                if (index >= MessagesList.Count || index < 0)
+                if (index >= Items.Count || index < 0)
                 {
                     return null;
                 }
-                return MessagesList[index];
+                return Items[index];
             }
         }
 
-        public static void AddLastMessage(int id, string text)
+        public void Add(Message newItem)
         {
-
-            for (int i = Math.Min(3, Instance.MessagesList.Count); i > 0; i--)
-            {
-                if (Instance.MessagesList.Count == i && i < 4)
-                    Instance.MessagesList.Add(Instance.MessagesList[i - 1]);
-                else
-                    Instance.MessagesList[i] = Instance.MessagesList[i - 1];
-            }
-            if (Instance.MessagesList.Count == 0)
-                Instance.MessagesList.Add(new(id, text));
-            else
-                Instance.MessagesList[0] = new(id, text);
-
-            Instance.PickedMessage = Instance[0];
-            Serializer.Save(_path, Instance.MessagesList);
+            Items.Insert(0, newItem);
+            if (Items.Count > _messageLimit)
+                Items.RemoveAt(_messageLimit);
+            SelectedItem = Items[0];
+            Serializer.Save(GetPath(), Items);
         }
 
-        public static void UpdateLastMessage(int id, string text)
+        public void Update(Message updatedItem)
         {
-            int i = 0;
-            for (; i < Instance.MessagesList.Count; i++)
-            {
-                if (Instance[i].Id == Instance.PickedMessage?.Id)
-                {
-                    break;
-                }
-            }
-
-            for (int j = 0; j < i; j++)
-            {
-                (Instance.MessagesList[j + 1], Instance.MessagesList[j]) = (Instance.MessagesList[j], Instance.MessagesList[j + 1]);
-            }
-
-            Instance.PickedMessage = Instance.MessagesList[0] = new(id, text);
-            Serializer.Save(_path, Instance.MessagesList);
+            Items.Remove(SelectedItem);
+            Items.Insert(0, updatedItem);
+            SelectedItem = updatedItem;
+            Serializer.Save(GetPath(), Items);
         }
 
-        public static void RemoveMessage(Message? pickedMessage)
+        public void Remove()
         {
-            int i = 0;
-            for (; i < Instance.MessagesList.Count; i++)
-            {
-                if (Instance[i].Id == pickedMessage?.Id)
-                {
-                    Instance.MessagesList.Remove(pickedMessage ?? new());
-                }
-            }
-
-            Instance.PickedMessage = Instance[0];
-            Serializer.Save(_path, Instance.MessagesList);
+            Items.Remove(SelectedItem);
+            SelectedItem = this[0];
+            Serializer.Save(GetPath(), Items);
         }
     }
 }
