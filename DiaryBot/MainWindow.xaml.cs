@@ -173,7 +173,7 @@ namespace DiaryBot
                         TokenConfigTextBox.Text = Configs.Instance.SelectedConfig.Token;
                         if (long.TryParse(Configs.Instance.SelectedConfig.Token.Split(':')[0], out long token) && token != Bot.GetToken())
                         {
-                            Bot.Instance = null;
+                            Bot.ClearInstance();
                         }
                         ChatIdConfigTextBox.Text = Configs.Instance.SelectedConfig.ChatId;
                         string replyMessageId = Configs.Instance.SelectedConfig.ReplyMessageId.ToString();

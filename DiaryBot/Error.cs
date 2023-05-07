@@ -1,19 +1,15 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace DiaryBot
 {
-    public class Error : INotifyPropertyChanged
+    public class Error : Singleton<Error>, INotifyPropertyChanged
     {
         private string _message = "";
 
         public string Message
         {
-            get
-            {
-                return _message;
-            }
+            get => _message;
             set
             {
                 _message = FormatMessage(value);
@@ -21,28 +17,11 @@ namespace DiaryBot
             }
         }
 
-        private static Error? _instance;
-
-        public static Error Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new Error();
-                }
-                return _instance;
-            }
-        }
-
         private Error() { }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public static string FormatMessage(string message) => message switch
         {

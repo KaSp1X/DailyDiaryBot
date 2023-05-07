@@ -2,34 +2,19 @@
 
 namespace DiaryBot
 {
-    class Presets
+    public sealed class Presets : Singleton<Presets>
     {
         public record Preset(string Name, string Text);
 
         private const string _path = "presets.json";
 
-        private static Presets? instance;
-
-        public static Presets Instance
+        private Presets() 
         {
-            get
-            {
-                if (instance == null)
-                {
-                    List<Preset> ex = Serializer.Load<List<Preset>>(_path) ?? new();
-                    instance = new()
-                    {
-                        PresetsList = ex,
-                        SelectedPreset = new(string.Empty, string.Empty)
-                    };
-                }
-                return instance;
-            }
+            PresetsList = Serializer.Load<List<Preset>>(_path) ?? new();
+            SelectedPreset = new(string.Empty, string.Empty);
         }
 
-        private Presets() { }
-
-        public List<Preset> PresetsList { get; set; }
+        public List<Preset> PresetsList { get; init; }
 
         public Preset SelectedPreset { get; set; }
 
