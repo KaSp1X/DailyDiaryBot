@@ -1,9 +1,11 @@
-﻿<Window x:Class="DiaryBot.MainWindow"
+﻿<Window x:Class="DiaryBot.WPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DiaryBot" xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+        xmlns:local="clr-namespace:DiaryBot.WPF"
+        xmlns:core="clr-namespace:DiaryBot.Core;assembly=DiaryBot.Core"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime" 
         mc:Ignorable="d"
         Name="DiaryMainWindow"
         Title="DiaryBot" Height="450" Width="600"
@@ -95,13 +97,13 @@
                 <Setter Property="Visibility" Value="Hidden"/>
                 <Setter Property="Margin" Value="0"/>
                 <Setter Property="Padding" Value="20, 2"/>
-                <Setter Property="Text" Value="{Binding Source={x:Static local:Error.Instance}, Path=Message, NotifyOnTargetUpdated=True}"/>
+                <Setter Property="Text" Value="{Binding Source={x:Static core:StatusModel.Instance}, Path=Message, NotifyOnTargetUpdated=True}"/>
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="Background">
                     <Setter.Value>
-                        <Binding Source="{x:Static local:Error.Instance}" Path="Message">
+                        <Binding Source="{x:Static core:StatusModel.Instance}" Path="Message">
                             <Binding.Converter>
-                                <local:ErrorMessageForegroundConverter/>
+                                <local:ErrorMessageBackgroundConverter/>
                             </Binding.Converter>
                         </Binding>
                     </Setter.Value>

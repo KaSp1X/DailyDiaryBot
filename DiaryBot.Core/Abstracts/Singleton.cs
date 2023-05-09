@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DiaryBot
+﻿namespace DiaryBot.Core
 {
     public abstract class Singleton<T> where T : Singleton<T>
     {

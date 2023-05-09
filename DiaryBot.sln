@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiaryBot", "DiaryBot\DiaryBot.csproj", "{F1AF9ED7-3C63-4298-9A1E-36AE1DCBC7AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiaryBot.Core", "DiaryBot.Core\DiaryBot.Core.csproj", "{330A4CBB-3888-4978-9BAB-4490EFFC28D4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiaryBot.WPF", "DiaryBot.WPF\DiaryBot.WPF.csproj", "{25BB0584-C3B1-4575-A180-AC0FCDE64B2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F1AF9ED7-3C63-4298-9A1E-36AE1DCBC7AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F1AF9ED7-3C63-4298-9A1E-36AE1DCBC7AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F1AF9ED7-3C63-4298-9A1E-36AE1DCBC7AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F1AF9ED7-3C63-4298-9A1E-36AE1DCBC7AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{330A4CBB-3888-4978-9BAB-4490EFFC28D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{330A4CBB-3888-4978-9BAB-4490EFFC28D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{330A4CBB-3888-4978-9BAB-4490EFFC28D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{330A4CBB-3888-4978-9BAB-4490EFFC28D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25BB0584-C3B1-4575-A180-AC0FCDE64B2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25BB0584-C3B1-4575-A180-AC0FCDE64B2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25BB0584-C3B1-4575-A180-AC0FCDE64B2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25BB0584-C3B1-4575-A180-AC0FCDE64B2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

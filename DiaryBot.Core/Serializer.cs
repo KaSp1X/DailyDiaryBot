@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
-using System.IO;
 
-namespace DiaryBot
+namespace DiaryBot.Core
 {
     public static class Serializer
     {
@@ -13,10 +12,6 @@ namespace DiaryBot
                 try
                 {
                     return JsonSerializer.Deserialize<T>(stream);
-                }
-                catch
-                {
-                    // Ignoring JSONSerializerException as upon invalid format of file it will be recreated.
                 }
                 finally { stream.Close(); }
             }

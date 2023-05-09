@@ -1,15 +1,13 @@
-﻿using System.Collections.Generic;
-
-namespace DiaryBot
+﻿namespace DiaryBot.Core
 {
-    public sealed class Messages : Singleton<Messages>, IRecordable<Message>
+    public sealed class MessagesModel : Singleton<MessagesModel>, IModel<Message>
     {
         private const int _messageLimit = 4;
 
         public List<Message> Items { get; init; }
         public Message? SelectedItem { get; set; }
 
-        private Messages() 
+        private MessagesModel() 
         { 
             Items = Serializer.Load<List<Message>>(GetPath()) ?? new();
             SelectedItem = this[0];

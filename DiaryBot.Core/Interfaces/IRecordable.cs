@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-
-namespace DiaryBot
+﻿namespace DiaryBot.Core
 {
-    public interface IRecordable<TRecord>
+    public interface IModel<TRecord>
     {
         public List<TRecord> Items { get; init; }
         public TRecord? SelectedItem { get; set; }

@@ -6,11 +6,16 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Icons\diary.ico</ApplicationIcon>
+    <PackageId>$(SolutionName)</PackageId>
+    <Authors>KaSp1x</Authors>
+    <Company>$(SolutionName)</Company>
+    <Product>$(SolutionName)</Product>
+    <AssemblyName>$(SolutionName)</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
     <Content Include="Icons\diary.ico" />
-    <PackageReference Include="Telegram.Bot" Version="18.0.0" />
+    <ProjectReference Include="..\DiaryBot.Core\DiaryBot.Core.csproj" />
   </ItemGroup>
 
 </Project>

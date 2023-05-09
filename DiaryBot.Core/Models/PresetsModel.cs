@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-
-namespace DiaryBot
+﻿namespace DiaryBot.Core
 {
-    public sealed class Presets : Singleton<Presets>, IRecordable<Preset>
+    public sealed class PresetsModel : Singleton<PresetsModel>, IModel<Preset>
     {
         public List<Preset> Items { get; init; }
         public Preset? SelectedItem { get; set; }
 
-        private Presets() => Items = Serializer.Load<List<Preset>>(GetPath()) ?? new();
+        private PresetsModel() => Items = Serializer.Load<List<Preset>>(GetPath()) ?? new();
 
         public string GetPath() => "presets.json";
 

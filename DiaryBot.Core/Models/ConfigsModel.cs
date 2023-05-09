@@ -1,18 +1,16 @@
-﻿using System.Collections.Generic;
-
-namespace DiaryBot
+﻿namespace DiaryBot.Core
 {
-    public sealed class Configs : Singleton<Configs>, IRecordable<Config>
+    public sealed class ConfigsModel : Singleton<ConfigsModel>, IModel<Config>
     {
         public List<Config> Items { get; init; }
         public Config? SelectedItem { get; set; }
 
-        private Configs()
+        private ConfigsModel()
         {
             Items = Serializer.Load<List<Config>>(GetPath()) ?? new();
             SelectedItem = Items.Count > 0 ? Items[^1] : null;
             if (string.IsNullOrWhiteSpace(SelectedItem?.Token))
-                Error.Instance.Message = "Create a new configuration profile to proceed futher";
+                StatusModel.Instance.Message = "Create a new configuration profile to proceed futher";
         }
 
         public string GetPath() => "config.json";

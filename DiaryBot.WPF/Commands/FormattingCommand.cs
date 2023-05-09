@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace DiaryBot
+namespace DiaryBot.WPF
 {
     public static class FormattingCommand
     {
