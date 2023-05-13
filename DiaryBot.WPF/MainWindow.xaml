@@ -22,7 +22,6 @@
                 <Setter Property="Padding" Value="5,7"/>
                 <Setter Property="AcceptsReturn" Value="True"/>
                 <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-                <EventSetter Event="TextChanged" Handler="RichTextBox_TextChanged"/>
                 <EventSetter Event="Loaded" Handler="RichTextBox_Loaded"/>
                 <EventSetter Event="DataObject.Pasting" Handler="RichTextBox_Pasting"/>
                 <EventSetter Event="PreviewTextInput" Handler="RichTextBox_PreviewTextInput"/>
@@ -147,7 +146,8 @@
                         <ColumnDefinition Width="62*"/>
                         <ColumnDefinition Width="38*"/>
                     </Grid.ColumnDefinitions>
-                    <RichTextBox Name="MessageRichTextBox">
+                    <RichTextBox Name="MessageRichTextBox"
+                                 TextChanged="RichTextBox_TextChanged">
                         <RichTextBox.CommandBindings>
                             <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"
                                             Executed="SetBoldCmd_Executed"
@@ -253,6 +253,7 @@
                                Grid.Row="2"
                                Padding="5,10,0,0"/>
                         <RichTextBox Name="TextPresetRichTextBox"
+                                     TextChanged="RichTextBox_TextChanged"
                                      Grid.Row="3">
                             <RichTextBox.CommandBindings>
                                 <CommandBinding Command="local:FormattingCommand.SetBoldTextCmd"

@@ -1,5 +1,6 @@
 ﻿using DiaryBot.Core;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -139,7 +140,7 @@ namespace DiaryBot.WPF
             new TextRange(TextPresetRichTextBox.Document.ContentStart,
                 TextPresetRichTextBox.Document.ContentEnd).Text = PresetsModel.Instance.SelectedItem?.Text ?? string.Empty;
         }
-        
+
         #endregion
 
         #region ClearTabMethods
@@ -168,7 +169,7 @@ namespace DiaryBot.WPF
             PresetsModel.Instance.SelectedItem = null;
             Controller.SetDeleteButtonIdle(DeletePresetButton);
         }
-        
+
         #endregion
 
         #region ItemClickEvents
@@ -254,9 +255,12 @@ namespace DiaryBot.WPF
 
         private void PresetButton_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            MessageRichTextBox.BeginChange();
             MessageRichTextBox.Selection.Text = PresetsModel.Instance.SelectedItem?.Text.TrimEnd('\n').TrimEnd('\r');
+            Controller.HighLightText(new TextRange(MessageRichTextBox.Selection.Start, MessageRichTextBox.Selection.End));
+            MessageRichTextBox.EndChange();
+            Controller.IsTagged = true;
             MessageTab.IsSelected = true;
-            RichTextBox_TextChanged(MessageRichTextBox);
         }
 
         #endregion
@@ -335,32 +339,34 @@ namespace DiaryBot.WPF
 
         #region RichTextBox Events
 
-        private void RichTextBox_TextChanged(object sender, TextChangedEventArgs? e = null)
+        private void RichTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is RichTextBox richTextBox)
             {
-                // to prevent overflow, we temporary remove event from our RichTextBox
-                richTextBox.TextChanged -= RichTextBox_TextChanged;
-
                 var range = new TextRange(richTextBox.Document.ContentStart, richTextBox.Document.ContentEnd);
                 ScrollViewer scrollViewer = GetScrollViewerByRichTextBox(richTextBox);
-
                 // a timer to make less load on the system when editing large text
                 Controller.UpdateTextTimer.DisposeTimer();
-                Controller.UpdateTextTimer = Controller.CreateTimer(Controller.UpdateInterval, (s, e) =>
+                Controller.UpdateTextTimer = Controller.CreateTimer(Controller.UpdateInterval, (s, ev) =>
                 {
+                    Dispatcher.Invoke(() => richTextBox.TextChanged -= RichTextBox_TextChanged);
                     // highlighting tags in richtextbox
-                    Controller.HighLightText(range);
-
+                    if (e == null ||
+                    e.UndoAction == UndoAction.Merge ||
+                    (e.UndoAction == UndoAction.Create && !Controller.IsTagged))
+                    {
+                        richTextBox.BeginChange();
+                        Controller.HighLightText(range);
+                        richTextBox.EndChange();
+                    }
+                    Controller.IsTagged = false;
                     // updating preview window
                     Controller.UpdatePreviewWindow(scrollViewer, range.Text.FixXamlKeys());
+                    Dispatcher.Invoke(() => richTextBox.TextChanged += RichTextBox_TextChanged);
                 });
                 Controller.UpdateTextTimer.Start();
-
-                // after everything is done return event to our RichTextBox
-                richTextBox.TextChanged += RichTextBox_TextChanged;
-
             }
+
         }
 
         private void RichTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

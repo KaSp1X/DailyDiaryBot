@@ -16,7 +16,7 @@ namespace DiaryBot.WPF
 
         public readonly static TimeSpan RemoveInterval = TimeSpan.FromSeconds(3);
         public readonly static TimeSpan UpdateInterval = TimeSpan.FromMilliseconds(200);
-        public readonly static Regex TagRegex = new(@"\[\\[bivus][0]{0,1}\]*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        public readonly static Regex TagRegex = new(@"\[\\[bivus][0]{0,1}\]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public readonly static RoutedUICommand[] Commands = new[]
                 {
                     EditingCommands.AlignCenter,
@@ -38,11 +38,13 @@ namespace DiaryBot.WPF
 
         #endregion
 
-        #region Timers
+        #region Properties
 
         public static DispatcherTimer? DeleteItemTimer { get; set; }
 
         public static DispatcherTimer? UpdateTextTimer { get; set; }
+
+        public static bool IsTagged { get; internal set; }
 
         #endregion
 
@@ -60,7 +62,11 @@ namespace DiaryBot.WPF
                 string formatedMessage = selectedText.WrapWithTags(tag, textBefore, textAfter);
                 if (!string.IsNullOrWhiteSpace(formatedMessage))
                 {
+                    richTextBox.BeginChange();
                     richTextBox.Selection.Text = formatedMessage;
+                    HighLightText(new TextRange(richTextBox.Selection.Start, richTextBox.Selection.End));
+                    richTextBox.EndChange();
+                    IsTagged = true;
                 }
             }
         }
@@ -99,7 +105,6 @@ namespace DiaryBot.WPF
                     """ + text.ToXaml() + "</TextBlock>";
             scroll.Content = XamlReader.Parse(xaml);
         }
-
         public static void HighLightText(TextRange range)
         {
             var start = range.Start;
